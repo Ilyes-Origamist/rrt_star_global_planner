@@ -18,7 +18,6 @@
 #include "rrt_star_global_planner/node.hpp"
 #include "rrt_star_global_planner/collision_detector.hpp"
 
-
 namespace rrt_star_global_planner {
 
 class RRTStar {

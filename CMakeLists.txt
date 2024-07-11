@@ -3,8 +3,7 @@ project(rrt_star_global_planner)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(catkin REQUIRED
-  COMPONENTS
+find_package(catkin REQUIRED COMPONENTS
   roscpp
   costmap_2d
   pluginlib

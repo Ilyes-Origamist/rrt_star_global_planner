@@ -11,6 +11,7 @@
 #include <costmap_2d/costmap_2d.h>
 #include <nav_core/base_global_planner.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
 
 #include <cmath>
 #include <string>
@@ -22,6 +23,8 @@
 #include "rrt_star_global_planner/node.hpp"
 #include "rrt_star_global_planner/rrt_star.hpp"
 #include "rrt_star_global_planner/random_double_generator.hpp"
+
+
 
 namespace rrt_star_global_planner {
 
@@ -78,6 +81,8 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
                         const std::list<std::pair<float, float>> &path);
 
  private:
+  ros::Publisher path_pub_;  
+  
   costmap_2d::Costmap2D* costmap_{nullptr};
   bool initialized_{false};
   int max_num_nodes_;
@@ -87,7 +92,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   float map_height_;
   double radius_;
   double goal_tolerance_;
-  bool search_specific_area_{true};
+  bool search_specific_area_{false};
   std::string global_frame_;
   std::shared_ptr<RRTStar> planner_;
 };

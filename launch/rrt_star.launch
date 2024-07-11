@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- load urdf, launch robot_state_publisher and rplidar -->
+  <include file="$(find slam_pkg)/launch/robot.launch" />
+
+  <!-- launch controller -->
+  <include file="$(find controller)/launch/controller.launch" />
+
+  <!-- launch amcl -->
+  <include file="$(find rrt_star_global_planner)/launch/amcl.launch" />
+
+  <!-- launch move base -->
+  <include file="$(find rrt_star_global_planner)/launch/move_base.launch" />
+
+</launch>

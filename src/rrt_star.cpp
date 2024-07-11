@@ -7,6 +7,8 @@
 
 namespace rrt_star_global_planner {
 
+// Constructor
+// Initializer list
 RRTStar::RRTStar(const std::pair<float, float> &start_point,
                  const std::pair<float, float> &goal_point,
                  costmap_2d::Costmap2D* costmap,
@@ -33,6 +35,8 @@ RRTStar::RRTStar(const std::pair<float, float> &start_point,
   random_double_.setRange(-map_width_, map_width_);
 }
 
+
+// pathPlanning
 bool RRTStar::pathPlanning(std::list<std::pair<float, float>> &path) {
   goal_reached_ = false;
 
@@ -98,6 +102,7 @@ int RRTStar::getNearestNodeId(const std::pair<float, float> &point) {
 }
 
 void RRTStar::createNewNode(float x, float y, int node_nearest_id) {
+  // new node placed using steer
   Node new_node(x, y, node_count_, node_nearest_id);
   nodes_.emplace_back(new_node);
 
@@ -114,7 +119,7 @@ void RRTStar::chooseParent(int node_nearest_id) {
   float cost_new_node;
   float cost_other_parent;
   float nodes_dist;
-
+  // parent node initialized to nearest node
   Node parent_node = nodes_[node_nearest_id];
 
   Node &new_node = nodes_.back();
@@ -214,4 +219,4 @@ bool RRTStar::isGoalReached(const std::pair<float, float> &p_new) {
                               goal_point_.second) < goal_tolerance_) ? true : false;
 }
 
-}  // namespace rrt_star_global_planner
+} 

@@ -5,20 +5,26 @@
 #include <pluginlib/class_list_macros.h>
 
 #include "rrt_star_global_planner/rrt_star_planner.hpp"
-
+#include <chrono>
 // register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(rrt_star_global_planner::RRTStarPlanner, nav_core::BaseGlobalPlanner)
 
 namespace rrt_star_global_planner {
 
-RRTStarPlanner::RRTStarPlanner() : costmap_(nullptr), initialized_(false) {}
+// ---------------------------------
+// Initialization of the planner
+// ---------------------------------
 
+// Initializer list n0
+RRTStarPlanner::RRTStarPlanner() : costmap_(nullptr), initialized_(false) {}
+// Initializer list n1
 RRTStarPlanner::RRTStarPlanner(std::string name,
                                costmap_2d::Costmap2DROS* costmap_ros) : costmap_(nullptr), initialized_(false) {
   // initialize the planner
   initialize(name, costmap_ros);
 }
 
+// Initializer list n2
 RRTStarPlanner::RRTStarPlanner(std::string name,
                                costmap_2d::Costmap2D* costmap,
                                std::string global_frame) : costmap_(nullptr), initialized_(false) {
@@ -26,16 +32,26 @@ RRTStarPlanner::RRTStarPlanner(std::string name,
   initialize(name, costmap, global_frame);
 }
 
+// ---------------------------------
+//     Initialization Functions
+// ---------------------------------
+
+// Initializer list n1 function definition
 void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
   initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
 }
 
+// Initializer list n2 function definition
+// Initializes the parameters
 void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap, std::string global_frame) {
   if (!initialized_) {
+
     costmap_ = costmap;
     global_frame_ = global_frame;
 
     ros::NodeHandle private_nh("~/" + name);
+    // initialize path publisher
+    path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/global_plan", 1, true);
     private_nh.param("goal_tolerance", goal_tolerance_, 0.5);
     private_nh.param("radius", radius_, 1.0);
     private_nh.param("epsilon", epsilon_, 0.2);
@@ -57,6 +73,11 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     ROS_WARN("This planner has already been initialized... doing nothing.");
   }
 }
+
+// ---------------------------------
+//     makePlan Function
+// ---------------------------------
+
 
 bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
@@ -94,10 +115,15 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   }
 }
 
+// ---------------------------------
+//     ComputeFinalPlan Function
+// ---------------------------------
+
 void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& plan,
                                        const std::list<std::pair<float, float>> &path) {
   // clean plan
   plan.clear();
+  auto start_time = std::chrono::high_resolution_clock::now();
   ros::Time plan_time = ros::Time::now();
 
   // convert points to poses
@@ -114,6 +140,17 @@ void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& 
     pose.pose.orientation.w = 1.0;
     plan.push_back(pose);
   }
+  // Publish the path
+  nav_msgs::Path path_msg;
+  path_msg.header.stamp = plan_time;
+  path_msg.header.frame_id = global_frame_;
+  path_msg.poses = plan;
+  path_pub_.publish(path_msg);
+  ROS_INFO("Published path with %ld points.", plan.size());
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end_time - start_time;
+  ROS_INFO("Time taken by computeFinalPlan: %f seconds", diff.count());
 }
 
 }  // namespace rrt_star_global_planner
