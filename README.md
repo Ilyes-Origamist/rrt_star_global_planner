@@ -8,6 +8,7 @@
 
 This is a ROS Global Planner Plugin that implements the RRT* (Rapidly-exploring Random Tree Star) path planning algorithm.
 
+We are trying to modify it and implement an improved version of it on a real robot.
 ## RRT* Algorithm Performance
 
 For better performance, fork this repository and improve your own global planner plugin implementing newer variations of the RRT* algorithm as, for example, the **RRT\*-Smart** or **Dual-Tree RRT\*-Smart**. I implemented these algorithms in this repository [Path-Planning-Pygame](https://github.com/rafaelbarretorb/Path-Planning-Pygame) using Python and they reach low-cost paths much faster.
