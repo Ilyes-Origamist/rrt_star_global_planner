@@ -47,6 +47,13 @@ class RRTStar {
   std::pair<float, float> sampleFree();
 
   /**
+   * @brief compute random point inside a circle of radius defined by a parameter
+   * @param center the center point of the circle 
+   * @return random planar position (x, y) inside the circle
+   */
+  std::pair<float, float> biasedSampling(std::pair<double, double> center)
+  
+  /**
    * @brief Get the Index of the nearest node around the new random point
    * @param point random pointed sampled
    * @return the nearest node Index

@@ -22,7 +22,6 @@ class RandomDoubleGenerator {
   RandomDoubleGenerator() = default;
 
   void setRange(double min, double max);
-
   double generate();
 };
 }  // namespace rrt_star_global_planner

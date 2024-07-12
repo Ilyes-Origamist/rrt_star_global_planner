@@ -52,11 +52,12 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     ros::NodeHandle private_nh("~/" + name);
     // initialize path publisher
     path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/global_plan", 1, true);
-    private_nh.param("goal_tolerance", goal_tolerance_, 0.5);
-    private_nh.param("radius", radius_, 1.0);
-    private_nh.param("epsilon", epsilon_, 0.2);
+    private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
+    private_nh.param("radius", radius_, 0.5);
+    private_nh.param("epsilon", epsilon_, 0.1);
     private_nh.param("max_num_nodes", max_num_nodes_, 5000);
     private_nh.param("min_num_nodes", min_num_nodes_, 500);
+    private_nh.param("sampling radius", sampling_radius_, 0.03);
 
     // TODO(Rafael) remove hard coding
     if (search_specific_area_) {
@@ -100,6 +101,7 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                                                   epsilon_,
                                                   max_num_nodes_,
                                                   min_num_nodes_,
+                                                  sampling_radius_,
                                                   map_width_,
                                                   map_height_));
 
