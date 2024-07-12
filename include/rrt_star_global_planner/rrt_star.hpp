@@ -30,15 +30,19 @@ class RRTStar {
           double epsilon,
           unsigned int max_num_nodes,
           unsigned int min_num_nodes,
+          double sampling_radius,
           float map_width,
           float map_height);
 
+  // public data variables 
+  bool max_nodes_reached{false};
+  int just_traveled{falsed};
   /**
    * @brief compute the RRT* path planning
    * @param path list of planar positions (x, y)
    * @return true if a path is found, false otherwise
    */
-  bool pathPlanning(std::list<std::pair<float, float>> &path);  // NOLINT
+  bool initialPath(std::list<std::pair<float, float>> &path);  // NOLINT
 
   /**
    * @brief compute random points
@@ -47,11 +51,11 @@ class RRTStar {
   std::pair<float, float> sampleFree();
 
   /**
-   * @brief compute random point inside a circle of radius defined by a parameter
+   * @brief compute random point inside a circle of radius defined by the parameter "sampling_radius"
    * @param center the center point of the circle 
    * @return random planar position (x, y) inside the circle
    */
-  std::pair<float, float> biasedSampling(std::pair<double, double> center)
+  std::pair<float, float> biasedSampling(std::pair<double, double> center);
   
   /**
    * @brief Get the Index of the nearest node around the new random point

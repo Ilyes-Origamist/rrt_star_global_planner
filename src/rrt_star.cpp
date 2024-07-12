@@ -33,13 +33,14 @@ RRTStar::RRTStar(const std::pair<float, float> &start_point,
                                      cd_(costmap) {
   nodes_.reserve(max_num_nodes_);
 
-  // Set range
+  // Set default range
   random_double_.setRange(-map_width_, map_width_);
 }
 
-
-// pathPlanning
-bool RRTStar::pathPlanning(std::list<std::pair<float, float>> &path) {
+/*
+finding initial path
+*/
+bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
   goal_reached_ = false;
 
   if (cd_.isThisPointCollides(goal_point_.first, goal_point_.second)) {
@@ -56,32 +57,14 @@ bool RRTStar::pathPlanning(std::list<std::pair<float, float>> &path) {
   Node node_nearest;
 
   bool found_next;
-  std::int i=0, num_travels=0;
-    
   // main loop
-  while (nodes_.size() < max_num_nodes_) {
+  while (nodes_.size() < max_num_nodes_ && !goal_reached_) {
     found_next = false;
-    /* continue generating a random point until it is possible 
-    without any collision */
+
     while (!found_next) {
-      if (!goal_reached_){
-        p_rand = sampleFree();  // random point in the free space
-      }
-      else{
-        if (i==path.size()) {
-          i=0;
-          num_travels++;
-        }
-        else{
-          // current node as center for biased sampling
-          current_node_.first=nodes_[i].x;
-          current_node_.second=nodes_[i].y;
-          // biased sampling with current node as center of the circle
-          p_rand= biasedSampling(current_node_);
-          i++;
-        }
-        
-      }
+      /* continue generating a random point until it is possible 
+      without any collision */
+      p_rand = sampleFree();  // random point in the free space
       node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
       p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
       if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
@@ -89,22 +72,73 @@ bool RRTStar::pathPlanning(std::list<std::pair<float, float>> &path) {
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
       }
     }
-
-    if (!goal_reached_) {
-      if (isGoalReached(p_new)) {
-        goal_reached_ = true;
-        goal_node_ = nodes_.back();
-      }
-    }
-
-    if (goal_reached_) {
-      computeFinalPath(path);
-      return true;
-    }
+    // after p_new is generated, check if it is within goal's vicinity
+    goal_reached_=isGoalReached(p_new);
   }
-  return false;
+
+  // goal reached: initial path found
+  if(goal_reached_){
+    goal_node_ = nodes_.back();
+    computeFinalPath(path);
+    ROS_INFO("Initial Path found! Proceeding to path optimization.");
+    return true;
+  }
+  // max number of nodes reached
+  else{
+    max_nodes_reached=true;
+    ROS_ERROR("Max number of nodes reached! Did not find a path!");
+    return false;
+  }
 }
 
+
+/*
+optimizing initial path
+*/
+void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
+
+  std::pair<float, float> p_rand;
+  std::pair<float, float> p_new;
+  // std::pair<float, float> current_point;
+  Node node_nearest;
+
+  bool found_next=false;
+  int num_travels_=0;
+  int i=0;
+  // main loop
+  while (nodes_.size() < max_num_nodes_) {
+    // if travelled all the path (except goal node)
+    if (i==path.size()-2) {
+      i=0;
+      num_travels_++;
+      just_traveled=true;
+      computeFinalPath(path);
+      ROS_INFO("Traveled the path for %d time", num_travels_);
+    }
+    else {
+      while (!found_next) {
+        // current node = path[i] when traveling
+        // biased sampling with current node as center of the circle
+        p_rand= biasedSampling(path[i]);
+        node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
+        p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
+        if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
+          found_next = true;
+          createNewNode(p_new.first, p_new.second, node_nearest.node_id);
+        }
+      }
+      // moving to next node
+      i++;
+    }
+  }
+  // end of optimization loop, recompute the final path
+  computeFinalPath(path);
+  // end
+}
+
+/*
+sampleFree 
+*/
 std::pair<float, float> RRTStar::sampleFree() {
   std::pair<float, float> random_point;
   random_point.first = random_double_.generate();
@@ -113,6 +147,10 @@ std::pair<float, float> RRTStar::sampleFree() {
   return random_point;
 }
 
+
+/*
+biasedSampling
+*/
 std::pair<float, float> RRTStar::biasedSampling(std::pair<double, double> center) {
   std::pair<float, float> new_rand_point;  
   double min_x = center.first - sampling_radius_;
@@ -127,7 +165,9 @@ std::pair<float, float> RRTStar::biasedSampling(std::pair<double, double> center
   return new_rand_point;
 }
 
-
+/*
+getNearestNodeId
+*/
 int RRTStar::getNearestNodeId(const std::pair<float, float> &point) {
   float dist_nearest, dist;
   Node node_nearest = nodes_[0];
@@ -140,6 +180,9 @@ int RRTStar::getNearestNodeId(const std::pair<float, float> &point) {
   return node_nearest.node_id;
 }
 
+/*
+createNewNode
+*/
 void RRTStar::createNewNode(float x, float y, int node_nearest_id) {
   // new node placed using steer
   Node new_node(x, y, node_count_, node_nearest_id);
@@ -154,6 +197,9 @@ void RRTStar::createNewNode(float x, float y, int node_nearest_id) {
   node_count_++;
 }
 
+/*
+chooseParent
+*/
 void RRTStar::chooseParent(int node_nearest_id) {
   float cost_new_node;
   float cost_other_parent;
@@ -188,6 +234,9 @@ void RRTStar::chooseParent(int node_nearest_id) {
   new_node.parent_id = parent_node.node_id;
 }
 
+/*
+rewire
+*/
 void RRTStar::rewire() {
   float nodes_dist;
   float cost_node;
@@ -212,7 +261,9 @@ void RRTStar::rewire() {
   }
 }
 
-// TODO(Rafael) improve parameters name
+/*
+steer
+*/
 std::pair<float, float> RRTStar::steer(float x1, float y1, float x2, float y2) {
   std::pair<float, float> p_new;
   float dist = euclideanDistance2D(x1, y1, x2, y2);
@@ -228,10 +279,16 @@ std::pair<float, float> RRTStar::steer(float x1, float y1, float x2, float y2) {
   }
 }
 
+/*
+getNodes
+*/
 std::vector<Node> RRTStar::getNodes() const {
   return nodes_;
 }
 
+/*
+computeFinalPath
+*/
 void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
   path.clear();
 
@@ -251,6 +308,9 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
   } while (current_node.parent_id != -1);
 }
 
+/*
+isGoalReached
+*/
 bool RRTStar::isGoalReached(const std::pair<float, float> &p_new) {
   return (euclideanDistance2D(p_new.first,
                               p_new.second,
