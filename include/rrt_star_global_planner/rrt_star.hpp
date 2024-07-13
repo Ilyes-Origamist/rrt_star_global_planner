@@ -36,13 +36,18 @@ class RRTStar {
 
   // public data variables 
   bool max_nodes_reached{false};
-  int just_traveled{falsed};
   /**
    * @brief compute the RRT* path planning
    * @param path list of planar positions (x, y)
    * @return true if a path is found, false otherwise
    */
   bool initialPath(std::list<std::pair<float, float>> &path);  // NOLINT
+
+  /**
+   * @brief optimizes the initial path using biased sampling
+   * @param path list of planar positions (x, y)
+   */
+  void optimizePath(std::list<std::pair<float, float>> &path) ;
 
   /**
    * @brief compute random points
@@ -118,6 +123,7 @@ class RRTStar {
   unsigned int min_num_nodes_;
   double goal_tolerance_;
   double epsilon_;
+  double sampling_radius_;
 
   bool goal_reached_{false};
 

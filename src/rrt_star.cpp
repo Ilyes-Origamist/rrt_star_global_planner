@@ -104,14 +104,13 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
 
   bool found_next=false;
   int num_travels_=0;
-  int i=0;
+  auto it = path.begin();  // Iterator to traverse the list
   // main loop
   while (nodes_.size() < max_num_nodes_) {
     // if travelled all the path (except goal node)
-    if (i==path.size()-2) {
-      i=0;
+ if (it == std::prev(path.end())) {
+      it = path.begin();
       num_travels_++;
-      just_traveled=true;
       computeFinalPath(path);
       ROS_INFO("Traveled the path for %d time", num_travels_);
     }
@@ -119,7 +118,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
       while (!found_next) {
         // current node = path[i] when traveling
         // biased sampling with current node as center of the circle
-        p_rand= biasedSampling(path[i]);
+        p_rand= biasedSampling(*it);
         node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
         p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
         if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
@@ -128,7 +127,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
         }
       }
       // moving to next node
-      i++;
+      ++it;
     }
   }
   // end of optimization loop, recompute the final path

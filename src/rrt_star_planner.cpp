@@ -81,7 +81,7 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
 // ---------------------------------
 
 
-void RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
+bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                               const geometry_msgs::PoseStamped& goal,
                               std::vector<geometry_msgs::PoseStamped>& plan) {
   // clear the plan, just in case
@@ -113,8 +113,10 @@ void RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     computeFinalPlan(plan, path);
     planner_->optimizePath(path);
     computeFinalPlan(plan, path);
+    return true;
   } else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
+    return false;
   }
 }
 

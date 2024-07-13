@@ -73,7 +73,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
    * @param plan The plan... filled by the planner
    * @return True if a valid plan was found, false otherwise
    */
-  void makePlan(const geometry_msgs::PoseStamped& start,
+  bool makePlan(const geometry_msgs::PoseStamped& start,
                 const geometry_msgs::PoseStamped& goal,
                 std::vector<geometry_msgs::PoseStamped>& plan);  // NOLINT
 

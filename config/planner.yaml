@@ -6,3 +6,4 @@ RRTStarPlanner:
   epsilon: 0.05
   max_num_nodes: 10000
   min_num_nodes: 1500
+  sampling_radius: 0.02
