@@ -115,6 +115,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
       ROS_INFO("Traveled the path for %d time", num_travels_);
     }
     else {
+      found_next = false; // Reset found_next before the inner loop
       while (!found_next) {
         // current node = path[i] when traveling
         // biased sampling with current node as center of the circle
@@ -127,6 +128,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
         }
       }
       // moving to next node
+      ROS_INFO("Current point: (%f,%f)", it->first, it->second);
       ++it;
     }
   }
@@ -192,7 +194,7 @@ void RRTStar::createNewNode(float x, float y, int node_nearest_id) {
     chooseParent(node_nearest_id);
     rewire();
   }
-
+  ROS_INFO("Number of nodes: %d", node_count_);
   node_count_++;
 }
 

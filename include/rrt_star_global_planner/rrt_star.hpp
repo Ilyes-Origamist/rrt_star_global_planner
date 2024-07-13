@@ -36,6 +36,7 @@ class RRTStar {
 
   // public data variables 
   bool max_nodes_reached{false};
+  int node_count_{0};
   /**
    * @brief compute the RRT* path planning
    * @param path list of planar positions (x, y)
@@ -115,7 +116,6 @@ class RRTStar {
   costmap_2d::Costmap2D* costmap_{nullptr};
   std::vector<Node> nodes_;
   RandomDoubleGenerator random_double_;
-  int node_count_{0};
   float map_width_;
   float map_height_;
   double radius_;
