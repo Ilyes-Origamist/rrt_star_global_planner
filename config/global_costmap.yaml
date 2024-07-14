@@ -1,0 +1,15 @@
+
+base_global_planner: "rrt_star_global_planner/RRTStarPlanner"
+
+global_costmap:
+  global_frame: "map"
+  robot_base_frame: "base_link"
+  static_map: true
+  robot_base_frame: base_link
+  update_frequency: 3.0
+  rolling_window: false
+  track_unknown_space: true
+
+plugins:
+  - {name: static,      type: "costmap_2d::StaticLayer"}
+  - {name: inflation_global, type: "costmap_2d::InflationLayer"}

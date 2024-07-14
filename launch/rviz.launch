@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+ 
+ <!-- rviz launch -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rrt_star_global_planner)/config/rrt_star.rviz" />
+
+</launch>
