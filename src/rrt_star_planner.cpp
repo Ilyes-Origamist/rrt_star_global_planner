@@ -52,6 +52,8 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     ros::NodeHandle private_nh("~/" + name);
     // initialize path publisher
     path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/global_plan", 1, true);
+    initial_path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/initial_plan", 1, true);
+
     private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
     private_nh.param("radius", radius_, 0.5);
     private_nh.param("epsilon", epsilon_, 0.1);
@@ -110,7 +112,7 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   if (planner_->initialPath(path)) {
     ROS_INFO("RRT* Global Planner: Initial Path found!");
-    computeFinalPlan(plan, path);
+    computeInitialPlan(plan, path);
     planner_->optimizePath(path);
     computeFinalPlan(plan, path);
     return true;
@@ -156,7 +158,47 @@ void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& 
 
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end_time - start_time;
+  ROS_INFO("Time taken by computeFinalPlan: %f seconds", diff.count());
+}
+
+
+
+
+void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>& plan,
+                                       const std::list<std::pair<float, float>> &path) {
+  // clean plan
+  plan.clear();
+  auto start_time = std::chrono::high_resolution_clock::now();
+  ros::Time plan_time = ros::Time::now();
+
+  // convert points to poses
+  for (const auto &point : path) {
+    geometry_msgs::PoseStamped pose;
+    pose.header.stamp = plan_time;
+    pose.header.frame_id = global_frame_;
+    pose.pose.position.x = point.first;
+    pose.pose.position.y = point.second;
+    pose.pose.position.z = 0.0;
+    pose.pose.orientation.x = 0.0;
+    pose.pose.orientation.y = 0.0;
+    pose.pose.orientation.z = 0.0;
+    pose.pose.orientation.w = 1.0;
+    plan.push_back(pose);
+  }
+  // Publish the path
+  nav_msgs::Path path_msg;
+  path_msg.header.stamp = plan_time;
+  path_msg.header.frame_id = global_frame_;
+  path_msg.poses = plan;
+  initial_path_pub_.publish(path_msg);
+  ROS_INFO("Published path with %ld points.", plan.size());
+  ROS_INFO("Path Length is: %ld", path.size());
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end_time - start_time;
   ROS_INFO("Time taken by initialPath: %f seconds", diff.count());
 }
+
+
 
 }  // namespace rrt_star_global_planner

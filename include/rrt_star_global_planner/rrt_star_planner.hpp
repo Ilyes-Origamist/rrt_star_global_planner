@@ -80,9 +80,13 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   void computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& plan,  // NOLINT
                         const std::list<std::pair<float, float>> &path);
 
+  void computeInitialPlan(std::vector<geometry_msgs::PoseStamped>& plan,  // NOLINT
+                        const std::list<std::pair<float, float>> &path);
+
  private:
   ros::Publisher path_pub_;  
-  
+  ros::Publisher initial_path_pub_;
+
   costmap_2d::Costmap2D* costmap_{nullptr};
   bool initialized_{false};
   int max_num_nodes_;
