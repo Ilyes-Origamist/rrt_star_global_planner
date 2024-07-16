@@ -108,7 +108,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
   // main loop
   while (nodes_.size() < max_num_nodes_) {
     // if travelled all the path (except goal node)
- if (it == std::prev(path.end())) {
+    if (it == std::prev(path.end())) {
       it = path.begin();
       num_travels_++;
       computeFinalPath(path);
@@ -119,7 +119,15 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
       while (!found_next) {
         // current node = path[i] when traveling
         // biased sampling with current node as center of the circle
+        if (it == path.end()) {
+          ROS_ERROR("Iterator 'it' is invalid.");
+          return;
+        }        
         p_rand= biasedSampling(*it);
+        if (nodes_.empty()) {
+          ROS_ERROR("Nodes vector is empty.");
+          return;
+        }        
         node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
         p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
         if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
@@ -303,6 +311,11 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
     point.first = current_node.x;
     point.second = current_node.y;
     path.push_front(point);
+
+    if (current_node.parent_id < 0 || current_node.parent_id >= nodes_.size()) {
+      ROS_ERROR("Invalid parent_id: %d", current_node.parent_id);
+      break;
+    }
 
     // update the current node
     current_node = nodes_[current_node.parent_id];
