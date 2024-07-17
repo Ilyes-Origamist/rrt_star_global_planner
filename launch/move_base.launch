@@ -19,7 +19,8 @@
     <rosparam file="$(find rrt_star_global_planner)/config/global_costmap.yaml" command="load" ns="global_costmap" /> 
 
     <rosparam file="$(find rrt_star_global_planner)/config/planner.yaml" command="load"/>
-
+    <rosparam file="$(find rrt_star_global_planner)/config/dwa_planner.yaml" command="load" />
+  
   </node>
 
 </launch>

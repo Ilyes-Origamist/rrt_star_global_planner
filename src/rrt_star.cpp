@@ -3,6 +3,7 @@
 */
 
 #include "rrt_star_global_planner/rrt_star.hpp"
+#include <chrono>
 
 
 namespace rrt_star_global_planner {
@@ -57,6 +58,9 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
   Node node_nearest;
 
   bool found_next;
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   // main loop
   while (nodes_.size() < max_num_nodes_ && !goal_reached_) {
     found_next = false;
@@ -81,6 +85,9 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
     goal_node_ = nodes_.back();
     computeFinalPath(path);
     ROS_INFO("Initial Path found! Proceeding to path optimization.");
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> diff = end_time - start_time;
+    ROS_INFO("Time taken to find initia path: %f seconds", diff.count());
     return true;
   }
   // max number of nodes reached
@@ -119,7 +126,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
       while (!found_next) {
         // current node = path[i] when traveling
         // biased sampling with current node as center of the circle
-        if (it == path.end()) {
+        if (it == path.end() ||(it->first > 500) || (it->second > 500)) {
           ROS_ERROR("Iterator 'it' is invalid.");
           return;
         }        
@@ -202,7 +209,6 @@ void RRTStar::createNewNode(float x, float y, int node_nearest_id) {
     chooseParent(node_nearest_id);
     rewire();
   }
-  ROS_INFO("Number of nodes: %d", node_count_);
   node_count_++;
 }
 
@@ -320,6 +326,8 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
     // update the current node
     current_node = nodes_[current_node.parent_id];
   } while (current_node.parent_id != -1);
+
+  ROS_INFO("Path cost: %f", goal_node_.cost);
 }
 
 /*

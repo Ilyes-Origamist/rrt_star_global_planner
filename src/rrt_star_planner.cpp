@@ -5,7 +5,6 @@
 #include <pluginlib/class_list_macros.h>
 
 #include "rrt_star_global_planner/rrt_star_planner.hpp"
-#include <chrono>
 // register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(rrt_star_global_planner::RRTStarPlanner, nav_core::BaseGlobalPlanner)
 
@@ -113,8 +112,9 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   if (planner_->initialPath(path)) {
     ROS_INFO("RRT* Global Planner: Initial Path found!");
     computeInitialPlan(plan, path);
-    planner_->optimizePath(path);
-    computeFinalPlan(plan, path);
+    ROS_INFO("Path cost: %f", (planner_->goal_node_).cost);
+
+    ROS_INFO("Number of nodes: %d", planner_->node_count_);
     return true;
   } else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
@@ -168,7 +168,6 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
                                        const std::list<std::pair<float, float>> &path) {
   // clean plan
   plan.clear();
-  auto start_time = std::chrono::high_resolution_clock::now();
   ros::Time plan_time = ros::Time::now();
 
   // convert points to poses
@@ -194,9 +193,6 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
   ROS_INFO("Published path with %ld points.", plan.size());
   ROS_INFO("Path Length is: %ld", path.size());
 
-  auto end_time = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff = end_time - start_time;
-  ROS_INFO("Time taken by initialPath: %f seconds", diff.count());
 }
 
 

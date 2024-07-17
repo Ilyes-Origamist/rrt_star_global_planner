@@ -37,6 +37,8 @@ class RRTStar {
   // public data variables 
   bool max_nodes_reached{false};
   int node_count_{0};
+  Node goal_node_;
+
   /**
    * @brief compute the RRT* path planning
    * @param path list of planar positions (x, y)
@@ -127,7 +129,6 @@ class RRTStar {
 
   bool goal_reached_{false};
 
-  Node goal_node_;
 
   CollisionDetector cd_;
 };
