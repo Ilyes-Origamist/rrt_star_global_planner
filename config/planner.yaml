@@ -1,9 +1,9 @@
 
 
 RRTStarPlanner:
-  goal_tolerance: 0.06
-  radius: 0.2
-  epsilon: 0.02
-  max_num_nodes: 5000
+  goal_tolerance: 0.08
+  radius: 0.4
+  epsilon: 0.04
+  max_num_nodes: 10000
   min_num_nodes: 1500
   sampling_radius: 0.09
