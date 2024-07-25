@@ -1,0 +1,44 @@
+eband_local_planner:
+
+  # Goal tolerances
+  xy_goal_tolerance: 0.1  # Distance tolerance for reaching the goal pose (meters)
+  yaw_goal_tolerance: 0.05  # Orientation tolerance for reaching the goal pose (radians)
+
+  # Stopped velocity thresholds
+  rot_stopped_vel: 0.01  # Angular velocity below which the robot is considered stopped (rad/s)
+  trans_stopped_vel: 0.01  # Linear velocity below which the robot is considered stopped (m/s)
+
+  # Visualization
+  marker_lifetime: 0.5  # Lifetime of visualization markers in seconds
+
+  # EBand-specific parameters
+  eband_min_relative_overlap: 0.7  # Minimum relative overlap to consider two bubbles connected
+  eband_tiny_bubble_distance: 0.01  # Distance defining a tiny bubble (meters)
+  eband_tiny_bubble_expansion: 0.01  # Distance for expanding a tiny bubble (meters)
+  eband_internal_force_gain: 1.0  # Gain for internal forces that stretch the elastic band
+  eband_external_force_gain: 2.0  # Gain for external forces pushing bubbles away from obstacles
+  num_iterations_eband_optimization: 3  # Number of iterations for optimizing the elastic band
+  eband_equilibrium_approx_max_recursion_depth: 4  # Max recursion depth for equilibrium approximation
+  eband_equilibrium_relative_overshoot: 0.75  # Max relative overshoot in equilibrium calculations
+  eband_significant_force_lower_bound: 0.15  # Threshold for considering a force significant (newtons)
+  costmap_weight: 10.0  # Weight factor for costmap in obstacle distance calculations
+
+  # Trajectory controller parameters
+  max_vel_lin: 0.75  # Maximum linear velocity (m/s)
+  max_vel_th: 1.0  # Maximum angular velocity (rad/s)
+  min_vel_lin: 0.1  # Minimum linear velocity (m/s)
+  min_vel_th: 0.0  # Minimum angular velocity (rad/s)
+  min_in_place_vel_th: 0.0  # Minimum in-place angular velocity (rad/s)
+  in_place_trans_vel: 0.0  # Minimum in-place linear velocity (m/s)
+  k_prop: 4.0  # Proportional gain for the PID controller
+  k_damp: 3.5  # Damping gain for the PID controller
+  Ctrl_Rate: 10.0  # Control rate (Hz)
+  max_acceleration: 0.5  # Maximum allowable acceleration (m/s^2)
+  virtual_mass: 0.75  # Virtual mass used in control (kg)
+  max_translational_acceleration: 0.5  # Maximum linear acceleration (m/s^2)
+  max_rotational_acceleration: 1.5  # Maximum angular acceleration (rad/s^2)
+  rotation_correction_threshold: 0.5  # Threshold for rotation correction (radians)
+  differential_drive: true  # Enable differential drive (use for differential drive robots)
+  bubble_velocity_multiplier: 2.0  # Multiplier for the bubble velocity
+  rotation_threshold_multiplier: 1.0  # Multiplier for the rotation threshold
+  disallow_hysteresis: false  # Disallow hysteresis around goal tolerance

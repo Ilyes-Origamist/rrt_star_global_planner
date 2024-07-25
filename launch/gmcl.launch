@@ -1,7 +1,7 @@
 
 <launch>
   <!-- Map Server Arguments -->
-  <arg name="map_file" default="$(find slam_pkg)/maps/mymap_croped.yaml"/>
+  <arg name="map_file" default="$(find slam_pkg)/maps/map4_croped.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <!-- Arguments -->
@@ -10,12 +10,28 @@
   <arg name="initial_pose_y" default="0"/>
   <arg name="initial_pose_a" default="0"/>
 
-<!-- AMCL -->
-  <node pkg="amcl" type="amcl" name="amcl">
+<!-- GMCL -->
+<node pkg="gmcl" type="gmcl" name="gmcl" output="screen">
 <!-- Initial Pose -->
   <param name="initial_pose_x" value="$(arg initial_pose_x)"/>
   <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
   <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
+
+<!-- GMCL specific parameters -->
+  <param name="use_optimal_filter" value="false"/>
+  <param name="use_intelligent_filter" value="false"/>
+  <param name="use_self_adaptive" value="false"/> 
+  <param name="use_kld_sampling" value="true"/> 
+
+  <param name="N_aux_particles" value="10"/>
+  
+  <param name="crossover_alpha" value=".5"/>
+  <param name="mutation_probability" value="0.1"/>
+    
+  <param name="energy_map_resolution_x" value="0.2"/>
+  <param name="energy_map_resolution_y" value="0.2"/>
+  <param name="energy_threshold_value" value="0.05"/>
+  <param name="publish_ser" value="false"/>
 
 <!-- Filter Prameters -->
   <!--Lowering transform_tolerance value may lead to Expolration Error. Adjust this value according to the processor capacity -->
@@ -32,6 +48,8 @@
     <param name="update_min_d" value="0.1"/> <!-- default 0.2 -->
     <!-- Rotational movement required before performing a filter update.  -->
     <param name="update_min_a" value="0.05"/> <!-- default 0.2 -->
+
+    <param name="selective_resampling" value="false"/> 
 
     <param name="resample_interval"         value="3"/>
     <param name="recovery_alpha_slow"       value="0.00"/>
@@ -77,6 +95,7 @@
 <!-- frames -->
     <param name="odom_frame_id"             value="odom"/>
     <param name="base_frame_id"             value="base_link"/>
+
 
   </node>
 
