@@ -23,7 +23,7 @@
 #include "rrt_star_global_planner/node.hpp"
 #include "rrt_star_global_planner/rrt_star.hpp"
 #include "rrt_star_global_planner/random_double_generator.hpp"
-
+#include "rrt_star_global_planner/random_int_generator.hpp"
 
 
 namespace rrt_star_global_planner {
@@ -83,6 +83,8 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   void computeInitialPlan(std::vector<geometry_msgs::PoseStamped>& plan,  // NOLINT
                         const std::list<std::pair<float, float>> &path);
 
+  void woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape);
+
  private:
   ros::Publisher path_pub_;  
   ros::Publisher initial_path_pub_;
@@ -94,12 +96,20 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   double epsilon_;
   float map_width_;
   float map_height_;
+  // parameters for RRT*
   double radius_;
   double goal_tolerance_;
   double sampling_radius_;
   bool search_specific_area_{false};
   std::string global_frame_;
   std::shared_ptr<RRTStar> planner_;
+  // parameters for WOA
+  int N_; // max number of iterations
+  int Ng_; // number of agents for WOA
+  float b_; // spiral shaping parameter
+  // tandom devices for WOA
+  RandomDoubleGenerator r_rand, p_rand, l_rand;
+  RandomIntGenerator rand_index;
 };
 
 }  // namespace rrt_star_global_planner

@@ -5,7 +5,11 @@
 #include <pluginlib/class_list_macros.h>
 
 #include "rrt_star_global_planner/rrt_star_planner.hpp"
+#include "rrt_star_global_planner/woa_agent.hpp"
 #include <chrono>
+#include <cmath>
+#include <armadillo>
+
 // register this planner as a BaseGlobalPlanner plugin
 PLUGINLIB_EXPORT_CLASS(rrt_star_global_planner::RRTStarPlanner, nav_core::BaseGlobalPlanner)
 
@@ -59,7 +63,9 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     private_nh.param("epsilon", epsilon_, 0.1);
     private_nh.param("max_num_nodes", max_num_nodes_, 5000);
     private_nh.param("min_num_nodes", min_num_nodes_, 500);
-    private_nh.param("sampling_radius", sampling_radius_, 0.03);
+    private_nh.param("max_iterations", N_, 100);
+    private_nh.param("num_agents", Ng_, 10);
+    private_nh.param("spiral_shape", b_, 1.0f);
 
     // TODO(Rafael) remove hard coding
     if (search_specific_area_) {
@@ -69,6 +75,11 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
       map_width_ = costmap_->getSizeInMetersX();
       map_height_ = costmap_->getSizeInMetersY();
     }
+    // initialize random objects (random devices)
+    p_rand.setRange(0,1);
+    r_rand.setRange(0,1);
+    l_rand.setRange(-1,1);
+    rand_index.setRange(0,Ng_-1);
 
     ROS_INFO("RRT* Global Planner initialized successfully.");
     ROS_INFO("Map dimensions: %f m, %f m", map_width_, map_height_);
@@ -113,7 +124,8 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   if (planner_->initialPath(path)) {
     ROS_INFO("RRT* Global Planner: Initial Path found!");
     computeInitialPlan(plan, path);
-    planner_->optimizePath(path);
+    ROS_INFO("Proceeding to path optimization with WOA");
+    woaOptimizePath(path, N_, Ng_, b_);
     computeFinalPlan(plan, path);
     return true;
   } else {
@@ -200,5 +212,83 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
 }
 
 
+
+
+void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape) {
+  // Initialization
+  //---------------
+  // vector containing all the agents
+  std::vector<PathAgent> agents;
+  // initial path
+  std::list<std::pair<float, float>> initial_path;
+  initial_path=path;
+  // initialize each agent
+  for (int i = 0; i < Ng; ++i) {
+      agents.push_back(PathAgent(path, i, costmap_, spiral_shape)); // create an agent object
+      // constructor: object_name(path, id, costmap_ptr, b)
+      // initialize random path
+    }
+  // Random variables
+  float p, r, l, a;
+  float A, C;
+  int rand; // random agent index
+
+  int best=0; // best agent index
+  float best_cost=agents[best].fitness();
+  float fitness;
+
+  //---------------
+  // Main Loop
+  for (int t=0; t<N; t++){
+    
+    //---------------
+    // Update Xbest
+    for (size_t i = 0; i < agents.size(); ++i) {
+          // Access the i-th object
+        fitness=agents[i].fitness(); // cost(Xi)
+        if (fitness < best_cost){
+          best=i;
+          best_cost=agents[best].fitness();
+        }
+    }
+    // update a
+    a=2-2*t/N;
+
+    //---------------
+    // Iterate over each agent
+    for (int i = 0; i < Ng; ++i) {
+      auto& Xi=agents[i];
+      // update the random variables
+      p=p_rand.generate();
+      r=r_rand.generate();
+      // update A and C
+      C=2*r;
+      A=C*a-a;
+      Xi.A=A;
+      Xi.C=C;
+      if (p<0.5){
+        // Circular Search
+        if (std::abs(A)>=1){
+          // Exploration
+          rand=rand_index.generateInt(); // random index
+          Xi.circularUpdate(agents[rand]); // update Xi using Xrand 
+        }
+        else{
+          // Exploitation
+          Xi.circularUpdate(agents[best]); // update Xi using Xbest 
+        }
+      }
+
+      else if (p>=0.5){
+        // Spiral Search
+        l=l_rand.generate();
+        Xi.l=l; // update l
+        Xi.spiralUpdate(agents[best]);
+      }
+    }
+
+  }
+  path=agents[best].getPath();
+}
 
 }  // namespace rrt_star_global_planner

@@ -110,6 +110,8 @@ class RRTStar {
 
   bool isGoalReached(const std::pair<float, float> &p_new);
 
+  std::list<std::pair<float, float>> randomInitialPath(std::list<std::pair<float, float>> &path);
+
  private:
   std::pair<float, float> start_point_;
   std::pair<float, float> goal_point_;

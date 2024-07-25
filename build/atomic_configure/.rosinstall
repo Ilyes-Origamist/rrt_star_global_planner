@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/ilyes/ros_arduino/src/rrt_star_global_planner/build/devel/setup.sh

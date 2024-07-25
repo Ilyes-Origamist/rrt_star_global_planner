@@ -145,6 +145,7 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
   // end
 }
 
+
 /*
 sampleFree 
 */
@@ -332,4 +333,4 @@ bool RRTStar::isGoalReached(const std::pair<float, float> &p_new) {
                               goal_point_.second) < goal_tolerance_) ? true : false;
 }
 
-} 
+}
