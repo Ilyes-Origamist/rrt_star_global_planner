@@ -8,9 +8,12 @@
   <include file="$(find controller)/launch/controller.launch" />
 
   <!-- launch amcl -->
-  <include file="$(find rrt_star_global_planner)/launch/amcl.launch" />
+  <include file="$(find rrt_star_global_planner)/launch/gmcl_v1.launch" />
 
   <!-- launch move base -->
   <include file="$(find rrt_star_global_planner)/launch/move_base.launch" />
+
+  <!-- launch rplidar -->
+  <!-- <include file="$(find slam_pkg)/launch/rplidar.launch" /> -->
 
 </launch>

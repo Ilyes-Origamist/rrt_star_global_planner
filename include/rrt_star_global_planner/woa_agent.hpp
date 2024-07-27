@@ -87,7 +87,7 @@ class PathAgent {
   CollisionDetector cd_;
   arma::vec D;
   arma::vec D2;
-  RandomDoubleGenerator random_double_;
+  RandomDoubleGenerator random_device_;
   int id_;
   std::pair<float, float> biasedSampling(std::pair<double, double> center);
   std::list<std::pair<float, float>> randomInitialPath(std::list<std::pair<float, float>> &path);

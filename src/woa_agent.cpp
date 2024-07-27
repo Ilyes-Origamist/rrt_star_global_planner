@@ -36,7 +36,7 @@ PathAgent::PathAgent(PathAgent&& other) noexcept
       cd_(std::move(other.cd_)),
       D(std::move(other.D)),
       D2(std::move(other.D2)),
-      random_double_(),  // Reinitialize this member
+      random_device_(),  // Reinitialize this member
       id_(other.id_),
       X(std::move(other.X)),
       vec_size(other.vec_size),
@@ -51,7 +51,7 @@ PathAgent& PathAgent::operator=(PathAgent&& other) noexcept {
     cd_ = std::move(other.cd_);
     D = std::move(other.D);
     D2 = std::move(other.D2);
-    random_double_ = RandomDoubleGenerator();  // Reinitialize this member
+    random_device_ = RandomDoubleGenerator();  // Reinitialize this member
     id_ = other.id_;
     X = std::move(other.X);
     vec_size = other.vec_size;
@@ -164,10 +164,10 @@ std::pair<float, float> PathAgent::biasedSampling(std::pair<double, double> cent
   double max_x = center.first + sampling_radius_;
   double min_y = center.second - sampling_radius_;
   double max_y = center.second + sampling_radius_;
-  random_double_.setRange(min_x,max_x);
-  new_rand_point.first = random_double_.generate();
-  random_double_.setRange(min_y,max_y);
-  new_rand_point.second = random_double_.generate();
+  random_device_.setRange(min_x,max_x);
+  new_rand_point.first = random_device_.generate();
+  random_device_.setRange(min_y,max_y);
+  new_rand_point.second = random_device_.generate();
   
   return new_rand_point;
 }
