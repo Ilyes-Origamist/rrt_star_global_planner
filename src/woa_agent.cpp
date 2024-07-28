@@ -16,6 +16,12 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
                                           sampling_radius_(sampling_radius),
                                           cd_(costmap),
                                           b(spiral_shape){
+
+        ROS_INFO("PathAgent constructor started");
+          // Initialization code
+        ROS_INFO("PathAgent initialized parameters");
+          // Additional setup
+        ROS_INFO("PathAgent setup complete");
     // initialize path
     path_ = randomInitialPath(path);
     vec_size = static_cast<uint16_t>(2*path_.size());
@@ -29,7 +35,37 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
     }
     D.set_size(vec_size);
     D2.set_size(vec_size);
+    ROS_INFO("Done initializing");
 }
+
+
+// PathAgent::PathAgent(PathAgent&& other) noexcept
+//     : path_(std::move(other.path_)),
+//       cd_(std::move(other.cd_)),
+//       D(std::move(other.D)),
+//       D2(std::move(other.D2)),
+//       random_device_(std::move(other.random_device_)),
+//       id_(other.id_),
+//       X(std::move(other.X)),
+//       vec_size(other.vec_size),
+//       b(other.b) {
+//   // Any additional initialization code here
+// }
+
+// PathAgent& PathAgent::operator=(PathAgent&& other) noexcept {
+//   if (this != &other) {
+//     path_ = std::move(other.path_);
+//     cd_ = std::move(other.cd_);
+//     D = std::move(other.D);
+//     D2 = std::move(other.D2);
+//     random_device_ = std::move(other.random_device_);
+//     id_ = other.id_;
+//     X = std::move(other.X);
+//     vec_size = other.vec_size;
+//     b = other.b;
+//   }
+//   return *this;
+// }
 
 
 // // Move constructor

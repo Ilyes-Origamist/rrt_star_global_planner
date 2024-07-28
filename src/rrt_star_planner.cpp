@@ -210,24 +210,29 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
 void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape) {
   // Initialization
   //---------------
-  // vector containing all the agents
-  std::vector<PathAgent> agents;
+  // vector containing pointer to all the agents
+  // using pointer to avoid moving the object PAthAgent
+  // which will make errors since RandomDoubleGenerator is non-movable
+  std::vector<std::unique_ptr<PathAgent>> agents;  
   // initial path
   std::list<std::pair<float, float>> initial_path;
   initial_path=path;
   // initialize each agent
-  for (int i = 0; i < Ng; ++i) {
-      agents.push_back(PathAgent(initial_path, sampling_radius_, i, costmap_, spiral_shape)); // create an agent object
+for (int i = 0; i < Ng; ++i) {
+    ROS_INFO("Creating Agent objects");
+    agents.emplace_back(std::make_unique<PathAgent>(initial_path, sampling_radius_, i, costmap_, spiral_shape));
+    ROS_INFO("Created agent %d", i);
       // constructor: object_name(path, sampling_radius, id, costmap_ptr, b)
       // initialize random path
     }
+  ROS_INFO("Created %ld agents",agents.size());
   // Random variables
   float p, r, l, a;
   float A, C;
   int rand; // random agent index
 
   int best=0; // best agent index
-  float best_cost=agents[best].fitness();
+  float best_cost=agents[best]->fitness();
   float fitness;
 
   //---------------
@@ -238,10 +243,10 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
     // Update Xbest
     for (size_t i = 0; i < agents.size(); ++i) {
           // Access the i-th object
-        fitness=agents[i].fitness(); // cost(Xi)
+        fitness=agents[i]->fitness(); // cost(Xi)
         if (fitness < best_cost){
           best=i;
-          best_cost=agents[best].fitness();
+          best_cost=agents[best]->fitness();
         }
     }
     // update a
@@ -250,7 +255,7 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
     //---------------
     // Iterate over each agent
     for (int i = 0; i < Ng; ++i) {
-      auto& Xi=agents[i];
+      auto& Xi=*agents[i];
       // update the random variables
       p=p_rand.generate();
       r=r_rand.generate();
@@ -264,11 +269,11 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
         if (std::abs(A)>=1){
           // Exploration
           rand=rand_index.generateInt(); // random index
-          Xi.circularUpdate(agents[rand]); // update Xi using Xrand 
+          Xi.circularUpdate(*agents[rand]); // update Xi using Xrand 
         }
         else{
           // Exploitation
-          Xi.circularUpdate(agents[best]); // update Xi using Xbest 
+          Xi.circularUpdate(*agents[best]); // update Xi using Xbest 
         }
       }
 
@@ -276,12 +281,12 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
         // Spiral Search
         l=l_rand.generate();
         Xi.l=l; // update l
-        Xi.spiralUpdate(agents[best]);
+        Xi.spiralUpdate(*agents[best]);
       }
     }
 
   }
-  path=agents[best].getPath();
+  path=agents[best]->getPath();
 }
 
 }  // namespace rrt_star_global_planner

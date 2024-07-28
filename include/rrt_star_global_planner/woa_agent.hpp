@@ -31,10 +31,10 @@ class PathAgent {
             costmap_2d::Costmap2D* costmap,
             float spiral_shape);
 
-   // Move constructor
-  PathAgent(PathAgent&& other) noexcept;
-  // Move assignment operator
-  PathAgent& operator=(PathAgent&& other) noexcept;
+  //  // Move constructor
+  // PathAgent(PathAgent&& other) noexcept;
+  // // Move assignment operator
+  // PathAgent& operator=(PathAgent&& other) noexcept;
  
   float sampling_radius_{0.1};
   // public data variables 
