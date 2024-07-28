@@ -32,8 +32,10 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/rrt_star_planner.cpp
   src/rrt_star.cpp
+  src/woa_agent.cpp
   src/collision_detector.cpp
   src/random_double_generator.cpp
+  src/random_int_generator.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -15,11 +15,11 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
                                           cd_(costmap),
                                           b(spiral_shape){
     // initialize path
-    *path_ = randomInitialPath(path);
-    vec_size = static_cast<uint16_t>(2*path_->size());
+    path_ = randomInitialPath(&path);
+    vec_size = static_cast<uint16_t>(2*path_.size());
     // Initialize X
     X.set_size(vec_size);
-    auto it = path_->begin();  // Use path_ here
+    auto it = path_.begin();  // Use path_ here
     for (int i = 0; i < vec_size; i += 2) {
         X(i) = static_cast<float>(it->first);
         X(i+1) = static_cast<float>(it->second);
@@ -30,36 +30,36 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 }
 
 
-// Move constructor
-PathAgent::PathAgent(PathAgent&& other) noexcept
-    : path_(other.path_),
-      cd_(std::move(other.cd_)),
-      D(std::move(other.D)),
-      D2(std::move(other.D2)),
-      random_device_(), // Reinitialize this member
-      id_(other.id_),
-      X(std::move(other.X)),
-      vec_size(other.vec_size),
-      b(other.b) {
-  other.path_ = nullptr;  // Nullify other's pointer
-}
+// // Move constructor
+// PathAgent::PathAgent(PathAgent&& other) noexcept
+//     : path_(other.path_),
+//       cd_(std::move(other.cd_)),
+//       D(std::move(other.D)),
+//       D2(std::move(other.D2)),
+//       random_device_(), // Reinitialize this member
+//       id_(other.id_),
+//       X(std::move(other.X)),
+//       vec_size(other.vec_size),
+//       b(other.b) {
+//   other.path_ = nullptr;  // Nullify other's pointer
+// }
 
-// Move assignment operator
-PathAgent& PathAgent::operator=(PathAgent&& other) noexcept {
-  if (this != &other) {
-    path_ = other.path_;
-    cd_ = std::move(other.cd_);
-    D = std::move(other.D);
-    D2 = std::move(other.D2);
-    random_device_ = RandomDoubleGenerator();  // Reinitialize this member
-    id_ = other.id_;
-    X = std::move(other.X);
-    vec_size = other.vec_size;
-    b = other.b;
-    other.path_ = nullptr;  // Nullify other's pointer
-  }
-  return *this;
-}
+// // Move assignment operator
+// PathAgent& PathAgent::operator=(PathAgent&& other) noexcept {
+//   if (this != &other) {
+//     path_ = other.path_;
+//     cd_ = std::move(other.cd_);
+//     D = std::move(other.D);
+//     D2 = std::move(other.D2);
+//     random_device_ = RandomDoubleGenerator();  // Reinitialize this member
+//     id_ = other.id_;
+//     X = std::move(other.X);
+//     vec_size = other.vec_size;
+//     b = other.b;
+//     other.path_ = nullptr;  // Nullify other's pointer
+//   }
+//   return *this;
+// }
 
 
 
@@ -101,14 +101,14 @@ Get the actual path
 */ 
 std::list<std::pair<float, float>> PathAgent::getPath(){
     updatePath();
-    return *path_;
+    return path_;
 }
 
 /*
 Update the actual path (from vector X to Path)
 */ 
 void PathAgent::updatePath(){
-    auto it = path_->begin(); 
+    auto it = path_.begin(); 
     for (int i=0; i<vec_size; i+=2){
         it->first=X(i);
         it->second=X(i+1);
@@ -139,8 +139,9 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
     while (!found_next) {
       // current node = path[i] when traveling
       // biased sampling with current node as center of the circle   
-      p_rand= biasedSampling(*it);     
-      if (!cd_.isThereObstacleBetween(it.prev(), p_rand)) {
+      p_rand= biasedSampling(*it);
+      auto prev_it = std::prev(it);     
+      if (!cd_.isThereObstacleBetween(*prev_it, p_rand)) {
         found_next = true;
         rand_path.emplace_back((p_rand.first, p_rand.second));      
       }
@@ -150,7 +151,7 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
       ++it;
     }
     rand_path.emplace_back((it->first,it->second)); // last point
-    ROS_INFO("Path length %lf", rand_path.size());
+    ROS_INFO("Path length %ld", rand_path.size());
     return rand_path;
   }
 

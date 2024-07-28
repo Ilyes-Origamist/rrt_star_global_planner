@@ -9,6 +9,8 @@
 #include <costmap_2d/costmap_2d.h>
 #include "rrt_star_global_planner/random_double_generator.hpp"
 #include "rrt_star_global_planner/random_int_generator.hpp"
+#include "rrt_star_global_planner/collision_detector.hpp"
+
 
 #include <cmath>
 #include <string>
@@ -83,7 +85,7 @@ class PathAgent {
 
 
  private:
-  std::list<std::pair<float, float>>* path_;
+  std::list<std::pair<float, float>> path_;
   CollisionDetector cd_;
   arma::vec D;
   arma::vec D2;

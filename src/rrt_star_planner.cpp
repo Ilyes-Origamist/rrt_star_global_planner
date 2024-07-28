@@ -63,6 +63,8 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     private_nh.param("epsilon", epsilon_, 0.1);
     private_nh.param("max_num_nodes", max_num_nodes_, 5000);
     private_nh.param("min_num_nodes", min_num_nodes_, 500);
+    private_nh.param("sampling_radius",sampling_radius_ , 0.09);
+
     private_nh.param("max_iterations", N_, 100);
     private_nh.param("num_agents", Ng_, 10);
     private_nh.param("spiral_shape", b_, 1.0f);
@@ -124,9 +126,9 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
-    // ROS_INFO("Proceeding to path optimization with WOA");
-    // woaOptimizePath(path, N_, Ng_, b_);
-    // computeFinalPlan(plan, path);
+    ROS_INFO("Proceeding to path optimization with WOA");
+    woaOptimizePath(path, N_, Ng_, b_);
+    computeFinalPlan(plan, path);
     return true;
   } else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
@@ -213,7 +215,7 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
   initial_path=path;
   // initialize each agent
   for (int i = 0; i < Ng; ++i) {
-      agents.push_back(PathAgent(path, i, costmap_, spiral_shape)); // create an agent object
+      agents.push_back(PathAgent(initial_path, i, costmap_, spiral_shape)); // create an agent object
       // constructor: object_name(path, id, costmap_ptr, b)
       // initialize random path
     }
