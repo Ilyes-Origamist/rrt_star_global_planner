@@ -36,7 +36,7 @@ PathAgent::PathAgent(PathAgent&& other) noexcept
       cd_(std::move(other.cd_)),
       D(std::move(other.D)),
       D2(std::move(other.D2)),
-      random_device_(),  // Reinitialize this member
+      random_device_(), // Reinitialize this member
       id_(other.id_),
       X(std::move(other.X)),
       vec_size(other.vec_size),

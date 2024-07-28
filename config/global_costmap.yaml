@@ -8,7 +8,7 @@ global_costmap:
   robot_base_frame: base_link
   update_frequency: 3.0
   rolling_window: false
-  track_unknown_space: true
+  track_unknown_space: false
 
 plugins:
   - {name: static,      type: "costmap_2d::StaticLayer"}

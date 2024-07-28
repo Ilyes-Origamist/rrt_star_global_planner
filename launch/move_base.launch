@@ -17,9 +17,9 @@
     <param name="base_local_planner" value="$(arg base_local_planner)"/>  
     
     <rosparam file="$(find rrt_star_global_planner)/config/common_costmap.yaml" command="load" ns="global_costmap" />
-    <rosparam file="$(find rrt_star_global_planner)/config/common_costmap.yaml" command="load" ns="local_costmap" />
+    <!-- <rosparam file="$(find rrt_star_global_planner)/config/common_costmap.yaml" command="load" ns="local_costmap" /> -->
     
-    <rosparam file="$(find rrt_star_global_planner)/config/local_costmap.yaml" command="load" ns="local_costmap" />
+    <!-- <rosparam file="$(find rrt_star_global_planner)/config/local_costmap.yaml" command="load" ns="local_costmap" /> -->
     <rosparam file="$(find rrt_star_global_planner)/config/global_costmap.yaml" command="load" ns="global_costmap" /> 
 
     <!-- <rosparam file="$(find rrt_star_global_planner)/config/teb_local_planner.yaml" command="load"/> -->

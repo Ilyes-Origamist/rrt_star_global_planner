@@ -22,7 +22,7 @@ obstacles_layer:
     laser_scan_sensor: {sensor_frame: laser, data_type: LaserScan, topic: /scan, marking: true, clearing: true, inf_is_valid: true}
 
 inflation_global:
-    inflation_radius: 0.03
+    inflation_radius: 0.1
 
 inflation_local:
-    inflation_radius: 0.03
+    inflation_radius: 0.1

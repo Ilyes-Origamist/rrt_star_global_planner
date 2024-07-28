@@ -75,11 +75,12 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
       map_width_ = costmap_->getSizeInMetersX();
       map_height_ = costmap_->getSizeInMetersY();
     }
+
     // initialize random objects (random devices)
     p_rand.setRange(0,1);
     r_rand.setRange(0,1);
     l_rand.setRange(-1,1);
-    rand_index.setRange(0,Ng_-1);
+    // rand_index.setRange(0,Ng_-1);
 
     ROS_INFO("RRT* Global Planner initialized successfully.");
     ROS_INFO("Map dimensions: %f m, %f m", map_width_, map_height_);
@@ -103,7 +104,6 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   ROS_INFO("RRT* Global Planner");
   ROS_INFO("Current Position: ( %.2lf, %.2lf)", start.pose.position.x, start.pose.position.y);
   ROS_INFO("GOAL Position: ( %.2lf, %.2lf)", goal.pose.position.x, goal.pose.position.y);
-
   std::pair<float, float> start_point = {start.pose.position.x, start.pose.position.y};
   std::pair<float, float> goal_point = {goal.pose.position.x, goal.pose.position.y};
 
@@ -120,13 +120,13 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                                                   map_height_));
 
   std::list<std::pair<float, float>> path;
+  ROS_INFO("Started computing path with RRT*");
 
   if (planner_->initialPath(path)) {
-    ROS_INFO("RRT* Global Planner: Initial Path found!");
     computeInitialPlan(plan, path);
-    ROS_INFO("Proceeding to path optimization with WOA");
-    woaOptimizePath(path, N_, Ng_, b_);
-    computeFinalPlan(plan, path);
+    // ROS_INFO("Proceeding to path optimization with WOA");
+    // woaOptimizePath(path, N_, Ng_, b_);
+    // computeFinalPlan(plan, path);
     return true;
   } else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
@@ -142,7 +142,6 @@ void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& 
                                        const std::list<std::pair<float, float>> &path) {
   // clean plan
   plan.clear();
-  auto start_time = std::chrono::high_resolution_clock::now();
   ros::Time plan_time = ros::Time::now();
 
   // convert points to poses
@@ -166,11 +165,6 @@ void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& 
   path_msg.poses = plan;
   path_pub_.publish(path_msg);
   ROS_INFO("Published path with %ld points.", plan.size());
-  ROS_INFO("Path Length is: %ld", path.size());
-
-  auto end_time = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff = end_time - start_time;
-  ROS_INFO("Time taken by computeFinalPlan: %f seconds", diff.count());
 }
 
 
@@ -180,7 +174,6 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
                                        const std::list<std::pair<float, float>> &path) {
   // clean plan
   plan.clear();
-  auto start_time = std::chrono::high_resolution_clock::now();
   ros::Time plan_time = ros::Time::now();
 
   // convert points to poses
@@ -205,10 +198,6 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
   initial_path_pub_.publish(path_msg);
   ROS_INFO("Published path with %ld points.", plan.size());
   ROS_INFO("Path Length is: %ld", path.size());
-
-  auto end_time = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff = end_time - start_time;
-  ROS_INFO("Time taken by initialPath: %f seconds", diff.count());
 }
 
 

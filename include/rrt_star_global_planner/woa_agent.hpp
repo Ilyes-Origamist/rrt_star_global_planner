@@ -17,7 +17,7 @@
 #include <utility>
 #include <cstdint>
 
-#include<armadillo>
+#include <armadillo>
 
 namespace rrt_star_global_planner {
 
