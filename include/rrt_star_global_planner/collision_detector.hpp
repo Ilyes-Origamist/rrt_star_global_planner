@@ -22,6 +22,9 @@ class CollisionDetector {
   // line between node and point
   bool isThereObstacleBetween(const Node &node, const std::pair<double, double> &point);
 
+  // line between two points
+  bool isThereObstacleBetween(const std::pair<double, double> &point1, const std::pair<double, double> &point2);
+
   // line between two nodes
   bool isThereObstacleBetween(const Node &node1, const Node &node2);
 

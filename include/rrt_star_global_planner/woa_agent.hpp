@@ -26,6 +26,7 @@ namespace rrt_star_global_planner {
 class PathAgent {
  public:
   PathAgent(std::list<std::pair<float, float>> &path,
+            const float sampling_radius,
             uint16_t id,
             costmap_2d::Costmap2D* costmap,
             float spiral_shape);
@@ -35,6 +36,7 @@ class PathAgent {
   // Move assignment operator
   PathAgent& operator=(PathAgent&& other) noexcept;
  
+  float sampling_radius_{0.1};
   // public data variables 
 
   // the vector representing the path

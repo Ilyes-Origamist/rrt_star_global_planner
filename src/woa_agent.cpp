@@ -1,21 +1,23 @@
 
 
 #include "rrt_star_global_planner/woa_agent.hpp"
-
+#include <iostream>
 
 namespace rrt_star_global_planner {
 
 // Initializer list
 
 PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
+                     const float sampling_radius,
                      uint16_t id,
                      costmap_2d::Costmap2D* costmap,
                      float spiral_shape): id_(id),
-                                          path_(&path),
+                                          path_(path),
+                                          sampling_radius_(sampling_radius),
                                           cd_(costmap),
                                           b(spiral_shape){
     // initialize path
-    path_ = randomInitialPath(&path);
+    path_ = randomInitialPath(path);
     vec_size = static_cast<uint16_t>(2*path_.size());
     // Initialize X
     X.set_size(vec_size);
@@ -120,7 +122,7 @@ void PathAgent::updatePath(){
 /*
 radnom initial path
 */
-std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::pair<float, float>> &path) {
+std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::pair<float,float>> &path) {
   std::list<std::pair<float, float>> rand_path;
   std::pair<float, float> p_rand;
   std::pair<float, float> p_new;
@@ -129,7 +131,7 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
   bool found_next=false;
   int num_travels_=0;
   auto it = path.begin();  // Iterator to traverse the list
-  rand_path.emplace_back((it->first,it->second));
+  rand_path.emplace_back(std::make_pair(it->first, it->second));
   ++it;
   // starting from the second node
 
@@ -140,17 +142,24 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
       // current node = path[i] when traveling
       // biased sampling with current node as center of the circle   
       p_rand= biasedSampling(*it);
-      auto prev_it = std::prev(it);     
-      if (!cd_.isThereObstacleBetween(*prev_it, p_rand)) {
+      auto prev_it = std::prev(it);   
+      // std::cout << "Type of *prev_it: " << typeid(*prev_it).name() << std::endl;
+      // std::cout << "Type of p_rand: " << typeid(p_rand).name() << std::endl;
+
+      // Ensure *prev_it and p_rand are of type std::pair<double, double>
+      auto prev_point = std::make_pair(static_cast<double>(prev_it->first), static_cast<double>(prev_it->second));
+      auto rand_point = std::make_pair(static_cast<double>(p_rand.first), static_cast<double>(p_rand.second));
+
+      if (!cd_.isThereObstacleBetween(prev_point, rand_point)) {
         found_next = true;
-        rand_path.emplace_back((p_rand.first, p_rand.second));      
+        rand_path.emplace_back(rand_point);      
       }
       // else loop until found_next=true
     }
       // moving to next node
       ++it;
     }
-    rand_path.emplace_back((it->first,it->second)); // last point
+    rand_path.emplace_back(std::make_pair(it->first, it->second)); // last point
     ROS_INFO("Path length %ld", rand_path.size());
     return rand_path;
   }

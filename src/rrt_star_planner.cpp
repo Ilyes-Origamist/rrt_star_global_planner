@@ -57,14 +57,16 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     // initialize path publisher
     path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/global_plan", 1, true);
     initial_path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/initial_plan", 1, true);
-
+    // RRT Star Parameters
     private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
     private_nh.param("radius", radius_, 0.5);
     private_nh.param("epsilon", epsilon_, 0.1);
     private_nh.param("max_num_nodes", max_num_nodes_, 5000);
     private_nh.param("min_num_nodes", min_num_nodes_, 500);
-    private_nh.param("sampling_radius",sampling_radius_ , 0.09);
-
+    
+    // WOA parameters
+    // sampling_radius_: to generate random initial paths (initialize WOA)
+    private_nh.param("sampling_radius",sampling_radius_ , 0.1); 
     private_nh.param("max_iterations", N_, 100);
     private_nh.param("num_agents", Ng_, 10);
     private_nh.param("spiral_shape", b_, 1.0f);
@@ -215,8 +217,8 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
   initial_path=path;
   // initialize each agent
   for (int i = 0; i < Ng; ++i) {
-      agents.push_back(PathAgent(initial_path, i, costmap_, spiral_shape)); // create an agent object
-      // constructor: object_name(path, id, costmap_ptr, b)
+      agents.push_back(PathAgent(initial_path, sampling_radius_, i, costmap_, spiral_shape)); // create an agent object
+      // constructor: object_name(path, sampling_radius, id, costmap_ptr, b)
       // initialize random path
     }
   // Random variables
