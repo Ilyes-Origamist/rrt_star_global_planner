@@ -3,6 +3,7 @@
 */
 
 #include "rrt_star_global_planner/collision_detector.hpp"
+#include <ros/ros.h>
 
 namespace rrt_star_global_planner {
 
@@ -34,14 +35,17 @@ bool CollisionDetector::isThisPointCollides(float wx, float wy) {
   // cost = 0 means totally free space
   if (cost > 0)
     return true;
-
-  return false;
+  
+  else{
+    // ROS_WARN("Chek if this point (%.4f, %.4f) is not in obstacle", wx, wy);
+    return false;
+  }
 }
 
 bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair<double, double> &point) {
   // In case of no costmap loaded
   if (costmap_ == nullptr) {
-    // there is NO obstacles
+    ROS_ERROR("No Costmap");
     return false;
   }
 

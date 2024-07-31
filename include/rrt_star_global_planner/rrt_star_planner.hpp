@@ -19,6 +19,7 @@
 #include <list>
 #include <utility>
 #include <memory>
+#include <armadillo> 
 
 #include "rrt_star_global_planner/node.hpp"
 #include "rrt_star_global_planner/rrt_star.hpp"
@@ -85,6 +86,13 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
 
   void woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape);
 
+  /**
+   * @brief Modifies the path given the agent
+   * @param agent The agent vector 
+   * @param path The path that will be modified
+   */  
+  void agentToPath(arma::vec agent, std::list<std::pair<float, float>> &path);
+
  private:
   ros::Publisher path_pub_;  
   ros::Publisher initial_path_pub_;
@@ -110,6 +118,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   // tandom devices for WOA
   RandomDoubleGenerator r_rand, p_rand, l_rand;
   RandomIntGenerator rand_index;
+  uint16_t agent_size_;
 };
 
 }  // namespace rrt_star_global_planner

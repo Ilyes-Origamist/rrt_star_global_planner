@@ -3,6 +3,7 @@
 */
 
 #include "rrt_star_global_planner/collision_detector.hpp"
+#include <ros/ros.h>
 
 namespace rrt_star_global_planner {
 
@@ -34,14 +35,17 @@ bool CollisionDetector::isThisPointCollides(float wx, float wy) {
   // cost = 0 means totally free space
   if (cost > 0)
     return true;
-
-  return false;
+  
+  else{
+    // ROS_WARN("Chek if this point (%.4f, %.4f) is not in obstacle", wx, wy);
+    return false;
+  }
 }
 
 bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair<double, double> &point) {
   // In case of no costmap loaded
   if (costmap_ == nullptr) {
-    // there is NO obstacles
+    ROS_ERROR("No Costmap");
     return false;
   }
 
@@ -63,9 +67,38 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
   }
 }
 
+
+// between two points
+bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &point1, const std::pair<double, double> &point2) {
+  // In case of no costmap loaded
+  if (costmap_ == nullptr) {
+    // there is NO obstacles
+    return false;
+  }
+
+  float dist = euclideanDistance2D(point1.first, point1.second, point2.first, point2.second);
+  if (dist < resolution_) {
+    return (isThisPointCollides(point2.first, point2.second)) ? true : false;
+  } 
+  else {
+    int steps_number = static_cast<int>(floor(dist/resolution_));
+    float theta = atan2(point1.second - point2.second, point1.first - point2.first);
+    std::pair<float, float> p_n;
+    for (int n = 1; n < steps_number; n++) {
+      p_n.first = point1.first + n*resolution_*cos(theta);
+      p_n.second = point1.second + n*resolution_*sin(theta);
+      if (isThisPointCollides(p_n.first, p_n.second))
+        return true;
+    }
+    return false;
+  }
+}
+
+// between two nodes
 bool CollisionDetector::isThereObstacleBetween(const Node &node1, const Node &node2) {
   return isThereObstacleBetween(node1, std::make_pair(node2.x, node2.y));
 }
+
 
 void CollisionDetector::worldToMap(float wx, float wy, int& mx, int& my) {
   if (costmap_ != nullptr) {

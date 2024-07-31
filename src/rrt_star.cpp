@@ -74,7 +74,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
       if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
         found_next = true;
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
-      }
+      } 
     }
     // after p_new is generated, check if it is within goal's vicinity
     goal_reached_=isGoalReached(p_new);
@@ -327,7 +327,10 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
     // update the current node
     current_node = nodes_[current_node.parent_id];
   } while (current_node.parent_id != -1);
-
+  point.first = current_node.x;
+  point.second = current_node.y;  
+  path.push_front(point);
+  
   ROS_INFO("Path cost: %f", goal_node_.cost);
 }
 

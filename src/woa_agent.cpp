@@ -17,25 +17,32 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
                                           cd_(costmap),
                                           b(spiral_shape){
 
-        ROS_INFO("PathAgent constructor started");
-          // Initialization code
-        ROS_INFO("PathAgent initialized parameters");
-          // Additional setup
-        ROS_INFO("PathAgent setup complete");
+        // ROS_INFO("PathAgent constructor started");
+        //   // Initialization code
+        // ROS_INFO("PathAgent initialized parameters");
+        //   // Additional setup
+        // ROS_INFO("PathAgent setup complete");
     // initialize path
-    path_ = randomInitialPath(path);
-    vec_size = static_cast<uint16_t>(2*path_.size());
+    // path_ = randomInitialPath(path);
+    path_=path;
+    start_point_= path_.front();
+    goal_point_ = path_.back();
+    // X exclude start and goal points. they are fixed points
+    vec_size = static_cast<uint16_t>(2*path_.size()-4);
     // Initialize X
     X.set_size(vec_size);
-    auto it = path_.begin();  // Use path_ here
+    auto it = path_.begin();
+    ++it;  // Use path_ here
     for (int i = 0; i < vec_size; i += 2) {
-        X(i) = static_cast<float>(it->first);
-        X(i+1) = static_cast<float>(it->second);
+        X.at(i) = static_cast<float>(it->first);
+        X.at(i+1) = static_cast<float>(it->second);
+        // ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
         ++it;  // Move to the next element in the list
     }
     D.set_size(vec_size);
     D2.set_size(vec_size);
-    ROS_INFO("Done initializing");
+    // ROS_INFO("Agent Size: %d", vec_size);
+    // ROS_INFO("Done initializing");
 }
 
 
@@ -101,20 +108,34 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 
 
 
-void PathAgent::circularUpdate(PathAgent &search_agent) {
-    D=arma::abs(C*search_agent.X-X);
-    X=search_agent.X-A*D;
+void PathAgent::circularUpdate(arma::vec search_agent) {
+  D=arma::abs(C*search_agent-X);
+  X=search_agent-A*D;
 }
 
-void PathAgent::spiralUpdate(PathAgent &search_agent) {
-    D2=arma::abs(search_agent.X-X);
-    X=search_agent.X+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
+void PathAgent::spiralUpdate(arma::vec search_agent) {
+  D2=arma::abs(search_agent-X);
+  X=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
 }
 
 float PathAgent::fitness() {
     float cost=0;
-    for(int i=0; i<vec_size-2; i+=2){
-        cost+=euclideanDistance2D(X(i), X(i+1), X(i+2), X(i+3));
+    // euclideanDistance2D(x1,y1,x2,y2)
+    cost+=euclideanDistance2D(start_point_.first, start_point_.second, X.at(0), X.at(1));
+    // ROS_INFO("Adding distance between the two points: start (%.4f, %.4f) and (%.4f, %.4f)", start_point_.first, start_point_.second, X.at(0), X.at(1));
+    // ROS_INFO("Cost after adding the start point: %.4f", cost);
+    if (vec_size>2){
+      for(int i=0; i<vec_size-2; i+=2){
+        cost+=euclideanDistance2D(X.at(i), X.at(i+1), X.at(i+2), X.at(i+3));
+          // ROS_INFO("Adding distance between the two points: (%.4f, %.4f) and (%.4f, %.4f)", X.at(i), X.at(i+1), X.at(i+2), X.at(i+3));
+          // ROS_INFO("Cost after adding the %d-th point: %.4f",i/2+1, cost);
+      }
+    }
+    cost+=euclideanDistance2D(goal_point_.first, goal_point_.second, X.at(vec_size-2), X.at(vec_size-1));
+    // ROS_INFO("Adding distance between the two points: goal (%.4f, %.4f) and (%.4f, %.4f)", goal_point_.first, goal_point_.second, X.at(vec_size-2), X.at(vec_size-1));
+    // ROS_INFO("Cost after adding the goal point: %.4f", cost);
+    if (cost<0) {
+      ROS_WARN("Cost is negative");
     }
     return cost;
 }
@@ -134,26 +155,6 @@ uint16_t PathAgent::getID(){
 }
 
 
-/*
-Get the actual path
-*/ 
-std::list<std::pair<float, float>> PathAgent::getPath(){
-    updatePath();
-    return path_;
-}
-
-/*
-Update the actual path (from vector X to Path)
-*/ 
-void PathAgent::updatePath(){
-    auto it = path_.begin(); 
-    for (int i=0; i<vec_size; i+=2){
-        it->first=X(i);
-        it->second=X(i+1);
-        ++it;
-    }
-}
-
 
 /*
 radnom initial path
@@ -163,16 +164,19 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
   std::pair<float, float> p_rand;
   std::pair<float, float> p_new;
   // std::pair<float, float> current_point;
-  Node node_nearest;
+  // Node node_nearest;
   bool found_next=false;
   int num_travels_=0;
   auto it = path.begin();  // Iterator to traverse the list
-  rand_path.emplace_back(std::make_pair(it->first, it->second));
+  rand_path.push_front(*it);
+  ROS_INFO("First iterator: (%.4f, %.4f)", it->first, it->second);
   ++it;
+  int i=2;
   // starting from the second node
 
   // main loop
   while (it != path.end()) {
+    ROS_INFO("Current iterator from initial path: (%.4f, %.4f)", it->first, it->second);
     found_next = false; // Reset found_next before the inner loop
     while (!found_next) {
       // current node = path[i] when traveling
@@ -188,14 +192,20 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
 
       if (!cd_.isThereObstacleBetween(prev_point, rand_point)) {
         found_next = true;
-        rand_path.emplace_back(rand_point);      
+        rand_path.push_back(rand_point);
+        ROS_INFO("Adding point from randomInitialPath: (%.4f, %.4f)", rand_point.first, rand_point.second);
       }
       // else loop until found_next=true
     }
-      // moving to next node
-      ++it;
+    ROS_INFO("Just processed the %d-th element", i);
+    i++;
+    // moving to next node
+    ++it;
     }
-    rand_path.emplace_back(std::make_pair(it->first, it->second)); // last point
+    ROS_INFO("Last iterator (after loop): (%.4f, %.4f)", it->first, it->second);
+    ROS_INFO("Now number of last element: %d", i);
+    rand_path.push_back(*it); // last point
+    // rand_path.push_back(std::make_pair(it->first, it->second)); // last point
     ROS_INFO("Path length %ld", rand_path.size());
     return rand_path;
   }
