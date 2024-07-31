@@ -1,0 +1,5 @@
+<launch>
+  <node name="costmap_publisher_node" pkg="rrt_star_global_planner" type="costmap_publisher" output="screen">
+    <rosparam file="$(find rrt_star_global_planner)/config/global_costmap.yaml" command="load" />
+  </node>
+</launch>

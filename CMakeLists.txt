@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_core
   base_local_planner
   geometry_msgs
+  tf2_ros
 )
 
 catkin_package(
@@ -22,12 +23,16 @@ catkin_package(
     nav_core
     base_local_planner
     geometry_msgs
+    tf2_ros
 )
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(costmap_publisher src/costmap_publisher.cpp)
+target_link_libraries(costmap_publisher ${catkin_LIBRARIES})
 
 add_library(${PROJECT_NAME}
   src/rrt_star_planner.cpp
@@ -38,9 +43,7 @@ add_library(${PROJECT_NAME}
   src/random_int_generator.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(
   FILES rrt_star_planner_plugin.xml
@@ -67,5 +70,4 @@ if (CATKIN_ENABLE_TESTING)
     ${PROJECT_NAME}
     gtest
   )
-
 endif()

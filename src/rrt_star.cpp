@@ -71,8 +71,9 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
       p_rand = sampleFree();  // random point in the free space
       node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
       p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
-      if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
+      if (!cd_.isThereObstacleBetween(node_nearest, p_new) && !cd_.isThisPointCollides(p_new.first, p_new.second)) {
         found_next = true;
+        // ROS_INFO("No obstacle between: (%.4f, %.4f) and (%.4f, %.4f)", node_nearest.x, node_nearest.y, p_new.first, p_new.second);
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
       } 
     }

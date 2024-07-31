@@ -111,11 +111,17 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 void PathAgent::circularUpdate(arma::vec search_agent) {
   D=arma::abs(C*search_agent-X);
   X=search_agent-A*D;
+  for (int k=0; k<vec_size; k+=2){
+    ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(k), X.at(k+1));
+  }
 }
 
 void PathAgent::spiralUpdate(arma::vec search_agent) {
   D2=arma::abs(search_agent-X);
   X=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
+  for (int k=0; k<vec_size; k+=2){
+    ROS_INFO("Agent spiral update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(k), X.at(k+1));
+  }
 }
 
 float PathAgent::fitness() {

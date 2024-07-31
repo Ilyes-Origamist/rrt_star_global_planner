@@ -1,5 +1,5 @@
 controller_frequency: 7.0
-recovery_behavior_enabled: false
+recovery_behavior_enabled: true
 conservative_reset_dist: 0.2
 
 NavfnROS:

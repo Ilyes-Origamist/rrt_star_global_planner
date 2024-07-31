@@ -6,6 +6,8 @@
 
 #include "rrt_star_global_planner/rrt_star_planner.hpp"
 #include "rrt_star_global_planner/woa_agent.hpp"
+#include <costmap_2d/costmap_2d_publisher.h>
+
 #include <chrono>
 #include <cmath>
 #include <armadillo>
@@ -41,6 +43,7 @@ RRTStarPlanner::RRTStarPlanner(std::string name,
 // ---------------------------------
 
 // Initializer list n1 function definition
+// It is used by move base
 void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros) {
   initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
 }
@@ -125,10 +128,10 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   std::list<std::pair<float, float>> path;
   ROS_INFO("Started computing path with RRT*");
-
+    
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
-    ROS_INFO("Proceeding to path optimization with WOA");
+    // ROS_INFO("Proceeding to path optimization with WOA");
     if (path.size()>2){
       woaOptimizePath(path, N_, Ng_, b_);
       computeFinalPlan(plan, path);
@@ -292,7 +295,6 @@ for (int i = 0; i < Ng; ++i) {
           rand=rand_index.generateInt(); // random index
           Xi.circularUpdate(agents[rand]->X); // update Xi using Xrand 
           for (int k=0; k<agent_size_; k+=2){
-          ROS_INFO("Random Agent correction (Xi): %d-th point: (%.4f, %.4f)", k/2+1, Xi.X.at(k), Xi.X.at(k+1));
           }
         }
         else{
