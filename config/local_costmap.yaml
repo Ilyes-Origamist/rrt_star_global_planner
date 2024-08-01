@@ -25,4 +25,4 @@ obstacles_layer:
   obstacle_range: 10.0
 
 inflation_local:
-  inflation_radius: 0.1
+  inflation_radius: 0.15
