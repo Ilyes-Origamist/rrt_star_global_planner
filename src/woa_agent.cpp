@@ -14,7 +14,7 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
                      float spiral_shape): id_(id),
                                           path_(path),
                                           sampling_radius_(sampling_radius),
-                                          cd_(costmap),
+                                          collision_(costmap),
                                           b(spiral_shape){
 
         // ROS_INFO("PathAgent constructor started");
@@ -106,21 +106,71 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 //   return *this;
 // }
 
-
-
+/*
+circular update
+*/
 void PathAgent::circularUpdate(arma::vec search_agent) {
   D=arma::abs(C*search_agent-X);
-  X=search_agent-A*D;
-  for (int k=0; k<vec_size; k+=2){
-    ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(k), X.at(k+1));
+  arma::vec Xnew;
+  Xnew=search_agent-A*D;
+
+  bool collides=false;
+  int k=0;
+  if (arma::all(Xnew < 20)){
+    // X not large
+    while (!collides && k<vec_size){
+      if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
+        collides=true;
+      }
+      k+=1;
+    }
+    // if no point in Xnew collides
+    if (!collides){
+      // update X
+      X=Xnew;
+      // display X
+      for (int j=0; j<vec_size; j+=2){
+        // ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+      }
+    }
+  }
+  else{
+    // X large
+    // ROS_WARN("X value is too large!");
   }
 }
 
+/*
+spiral update
+*/
 void PathAgent::spiralUpdate(arma::vec search_agent) {
   D2=arma::abs(search_agent-X);
-  X=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
-  for (int k=0; k<vec_size; k+=2){
-    ROS_INFO("Agent spiral update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(k), X.at(k+1));
+  arma::vec Xnew;
+  Xnew=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
+
+  bool collides=false;
+  int k=0;
+  if (arma::all(Xnew < 20)){
+    // X not large
+    while (!collides && k<vec_size){
+      if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
+        collides=true;
+      }
+      k+=1;
+    }
+    // if no point in Xnew collides
+    if (!collides){
+      // update X
+      X=Xnew;
+      // display X
+      for (int j=0; j<vec_size; j+=2){
+        // ROS_INFO("Agent spiral update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+      }
+    }
+  }
+  else{
+    // X large
+    // ROS_WARN("X value is too large!");
   }
 }
 
@@ -196,7 +246,7 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
       auto prev_point = std::make_pair(static_cast<double>(prev_it->first), static_cast<double>(prev_it->second));
       auto rand_point = std::make_pair(static_cast<double>(p_rand.first), static_cast<double>(p_rand.second));
 
-      if (!cd_.isThereObstacleBetween(prev_point, rand_point)) {
+      if (!collision_.isThereObstacleBetween(prev_point, rand_point)) {
         found_next = true;
         rand_path.push_back(rand_point);
         ROS_INFO("Adding point from randomInitialPath: (%.4f, %.4f)", rand_point.first, rand_point.second);
