@@ -128,15 +128,15 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
-    ROS_INFO("Proceeding to path optimization with WOA");
-    if (path.size()>2){
-      woaOptimizePath(path, N_, Ng_, b_);
-      computeFinalPlan(plan, path);
-      ROS_INFO("WOA Executed successfully. New path is published.");
-    }
-    else {
-      ROS_INFO("Path contains only two points. No WOA optimization.");
-    }
+    // ROS_INFO("Proceeding to path optimization with WOA");
+    // if (path.size()>2){
+    //   woaOptimizePath(path, N_, Ng_, b_);
+    //   computeFinalPlan(plan, path);
+    //   ROS_INFO("WOA Executed successfully. New path is published.");
+    // }
+    // else {
+    //   ROS_INFO("Path contains only two points. No WOA optimization.");
+    // }
     return true;
 
   } else {
@@ -201,7 +201,7 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
     pose.pose.orientation.z = 0.0;
     pose.pose.orientation.w = 1.0;
     plan.push_back(pose);
-    ROS_INFO("Initial path: Publishing point: (%.4f,%.4f)", point.first, point.second);
+    // ROS_INFO("Initial path: Publishing point: (%.4f,%.4f)", point.first, point.second);
   }
   // Publish the path
   nav_msgs::Path path_msg;
@@ -291,9 +291,6 @@ for (int i = 0; i < Ng; ++i) {
           // Exploration
           rand=rand_index.generateInt(); // random index
           Xi.circularUpdate(agents[rand]->X); // update Xi using Xrand 
-          for (int k=0; k<agent_size_; k+=2){
-          ROS_INFO("Random Agent correction (Xi): %d-th point: (%.4f, %.4f)", k/2+1, Xi.X.at(k), Xi.X.at(k+1));
-          }
         }
         else{
           // Exploitation

@@ -28,9 +28,9 @@ class CollisionDetector {
   // line between two nodes
   bool isThereObstacleBetween(const Node &node1, const Node &node2);
 
- private:
   void worldToMap(float wx, float wy, int& mx, int& my);  // NOLINT
 
+ private:
   costmap_2d::Costmap2D* costmap_{nullptr};
   double resolution_{0.1};
   double origin_x_{0.0};

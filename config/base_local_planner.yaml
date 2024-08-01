@@ -1,5 +1,5 @@
 controller_frequency: 7.0
-recovery_behavior_enabled: false
+recovery_behavior_enabled: true
 conservative_reset_dist: 0.2
 
 NavfnROS:
@@ -8,21 +8,21 @@ NavfnROS:
 
 TrajectoryPlannerROS:
   # Limits
-  acc_lim_x: 1.5
+  acc_lim_x: 1.0
   acc_lim_y: 0.0
   acc_lim_theta: 1.4
 
-  max_vel_x: 2
-  min_vel_x: -2
+  max_vel_x: 0.8
+  min_vel_x: -0.8
 
-  max_vel_theta: 2
-  min_vel_theta: -2
+  max_vel_theta: 0.7
+  min_vel_theta: -0.7
 
-  min_in_place_vel_theta: 0.4
+  min_in_place_vel_theta: 0.55
 
   # Goal Tolerance Parameters
   yaw_goal_tolerance: 0.2
-  xy_goal_tolerance: 0.3
+  xy_goal_tolerance: 0.2
   latch_xy_goal_tolerance: false
 
   # differential robot is non-holonomic

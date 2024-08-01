@@ -71,10 +71,10 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
       p_rand = sampleFree();  // random point in the free space
       node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
       p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
-      if (!cd_.isThereObstacleBetween(node_nearest, p_new)) {
+      if (!cd_.isThereObstacleBetween(node_nearest, p_new) && !cd_.isThisPointCollides(p_new.first, p_new.second)) {
         found_next = true;
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
-      } 
+      }
     }
     // after p_new is generated, check if it is within goal's vicinity
     goal_reached_=isGoalReached(p_new);
@@ -238,6 +238,7 @@ void RRTStar::chooseParent(int node_nearest_id) {
       cost_other_parent = node.cost + nodes_dist;
 
       if (cost_other_parent < cost_new_node) {
+        // node is a better parent choice 
         if (!cd_.isThereObstacleBetween(node, new_node)) {
           parent_node = node;
         }
@@ -318,7 +319,13 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
     point.first = current_node.x;
     point.second = current_node.y;
     path.push_front(point);
+    // ROS_INFO("Adding Point in path (%.4f, %.4f)", point.first, point.second);
+    int mx, my;
+    cd_.worldToMap(point.first, point.second, mx, my);
+    unsigned int cost = static_cast<int>(costmap_->getCost(mx, my));
+    // ROS_INFO("Point Cost: %d", cost);
 
+    // check if node id is valid
     if (current_node.parent_id < 0 || current_node.parent_id >= nodes_.size()) {
       ROS_ERROR("Invalid parent_id: %d", current_node.parent_id);
       break;
@@ -326,6 +333,14 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
 
     // update the current node
     current_node = nodes_[current_node.parent_id];
+    bool no_obstacle = !cd_.isThereObstacleBetween(current_node, point);
+    if (no_obstacle){
+      // ROS_INFO("No obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
+    }
+    else{
+      // ROS_INFO("There is obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
+    }
+    
   } while (current_node.parent_id != -1);
   point.first = current_node.x;
   point.second = current_node.y;  
