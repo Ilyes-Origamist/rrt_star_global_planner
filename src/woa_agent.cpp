@@ -115,7 +115,6 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
   Xnew=search_agent-A*D;
 
   bool collides=false;
-  std::pair<float,float> prev_point=std::make_pair(Xnew.at(0), Xnew.at(1));
   if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1))){
     collides=true;
   }
@@ -126,12 +125,10 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
       if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
         collides=true;
       }
-      if (collision_.isThereObstacleBetween(prev_point, std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
+      if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
         collides=true;
       }
       k+=2;
-      prev_point.first=Xnew.at(k);
-      prev_point.second = Xnew.at(k+1);
     }
     // if no point in Xnew collides
     if (!collides){
@@ -158,7 +155,6 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
   Xnew=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
 
   bool collides=false;
-  std::pair<float,float> prev_point=std::make_pair(Xnew.at(0), Xnew.at(1));
   if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1))){
     collides=true;
   }
@@ -169,13 +165,10 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
       if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
         collides=true;
       }
-      if (collision_.isThereObstacleBetween(prev_point, std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
+      if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
         collides=true;
       }
       k+=2;
-      prev_point.first=Xnew.at(k);
-      prev_point.second = Xnew.at(k+1);
-
     }
     // if no point in Xnew collides
     if (!collides){
