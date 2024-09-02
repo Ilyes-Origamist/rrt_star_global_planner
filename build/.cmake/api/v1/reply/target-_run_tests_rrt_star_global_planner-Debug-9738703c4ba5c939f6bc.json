@@ -8,7 +8,8 @@
 			"catkin_run_tests_target",
 			"add_rostest",
 			"_add_rostest_google_test",
-			"add_rostest_gtest"
+			"add_rostest_gtest",
+			"add_dependencies"
 		],
 		"files" : 
 		[
@@ -24,7 +25,7 @@
 			{
 				"command" : 4,
 				"file" : 2,
-				"line" : 58,
+				"line" : 60,
 				"parent" : 0
 			},
 			{
@@ -48,49 +49,31 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 185,
+				"line" : 137,
+				"parent" : 4
+			},
+			{
+				"command" : 5,
+				"file" : 0,
+				"line" : 147,
 				"parent" : 4
 			}
 		]
 	},
-	"id" : "clean_test_results_rrt_star_global_planner::@6890427a1f51a3e7e1df",
-	"name" : "clean_test_results_rrt_star_global_planner",
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 6,
+			"id" : "_run_tests_rrt_star_global_planner_rostest::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "_run_tests_rrt_star_global_planner::@6890427a1f51a3e7e1df",
+	"name" : "_run_tests_rrt_star_global_planner",
 	"paths" : 
 	{
 		"build" : ".",
 		"source" : "."
 	},
-	"sourceGroups" : 
-	[
-		{
-			"name" : "",
-			"sourceIndexes" : 
-			[
-				0
-			]
-		},
-		{
-			"name" : "CMake Rules",
-			"sourceIndexes" : 
-			[
-				1
-			]
-		}
-	],
-	"sources" : 
-	[
-		{
-			"backtrace" : 5,
-			"isGenerated" : true,
-			"path" : "build/CMakeFiles/clean_test_results_rrt_star_global_planner",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 0,
-			"isGenerated" : true,
-			"path" : "build/CMakeFiles/clean_test_results_rrt_star_global_planner.rule",
-			"sourceGroupIndex" : 1
-		}
-	],
+	"sources" : [],
 	"type" : "UTILITY"
 }

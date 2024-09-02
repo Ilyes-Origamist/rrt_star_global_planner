@@ -25,7 +25,7 @@
 			{
 				"command" : 4,
 				"file" : 2,
-				"line" : 58,
+				"line" : 60,
 				"parent" : 0
 			},
 			{
@@ -49,13 +49,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 135,
+				"line" : 177,
 				"parent" : 4
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 144,
+				"line" : 190,
 				"parent" : 4
 			}
 		]
@@ -64,16 +64,55 @@
 	[
 		{
 			"backtrace" : 6,
-			"id" : "run_tests_rrt_star_global_planner_rostest::@6890427a1f51a3e7e1df"
+			"id" : "clean_test_results_rrt_star_global_planner::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 6,
+			"id" : "tests::@6890427a1f51a3e7e1df"
+		},
+		{
+			"backtrace" : 6,
+			"id" : "test_rrt_star::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "run_tests_rrt_star_global_planner::@6890427a1f51a3e7e1df",
-	"name" : "run_tests_rrt_star_global_planner",
+	"id" : "_run_tests_rrt_star_global_planner_rostest_test_rrt_star.test::@6890427a1f51a3e7e1df",
+	"name" : "_run_tests_rrt_star_global_planner_rostest_test_rrt_star.test",
 	"paths" : 
 	{
 		"build" : ".",
 		"source" : "."
 	},
-	"sources" : [],
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 5,
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/_run_tests_rrt_star_global_planner_rostest_test_rrt_star.test",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/_run_tests_rrt_star_global_planner_rostest_test_rrt_star.test.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
 	"type" : "UTILITY"
 }

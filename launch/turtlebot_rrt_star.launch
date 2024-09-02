@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- launch tutrlebot and gazebo -->
+  <include file="$(find robot_model_pkg)/launch/turtlebot.launch" />
+
+  <!-- launch amcl -->
+  <include file="$(find rrt_star_global_planner)/launch/turtlebot_amcl.launch" />
+
+  <!-- launch move base -->
+  <include file="$(find rrt_star_global_planner)/launch/turtlebot_move_base.launch" />
+
+ <!-- rviz launch -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find rrt_star_global_planner)/config/rrt_star.rviz" />
+
+</launch>

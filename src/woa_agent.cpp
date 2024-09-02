@@ -110,7 +110,7 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 circular update
 */
 void PathAgent::circularUpdate(arma::vec search_agent) {
-  D=arma::abs(C*search_agent-X);
+  arma::vec D=arma::abs(C*search_agent-X);
   arma::vec Xnew;
   Xnew=search_agent-A*D;
 
@@ -150,9 +150,9 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
 spiral update
 */
 void PathAgent::spiralUpdate(arma::vec search_agent) {
-  D2=arma::abs(search_agent-X);
+  arma::vec D2=arma::abs(search_agent-X);
   arma::vec Xnew;
-  Xnew=search_agent+std::exp(b*l)*std::cos(2*M_PI*l)*D2;
+  Xnew=search_agent+(std::exp(b*l)*std::cos(2*M_PI*l))*D2;
 
   bool collides=false;
   if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1))){
