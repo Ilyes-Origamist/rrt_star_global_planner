@@ -1,6 +1,7 @@
 
 
 #include "rrt_star_global_planner/woa_agent.hpp"
+#include <costmap_2d/costmap_2d.h>
 #include <iostream>
 
 namespace rrt_star_global_planner {
@@ -15,8 +16,11 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
                                           path_(path),
                                           sampling_radius_(sampling_radius),
                                           collision_(costmap),
-                                          b(spiral_shape){
+                                          b(spiral_shape),
+                                          costmap_(costmap){
 
+    map_width_=costmap_->getSizeInMetersX();
+    map_height_=costmap_->getSizeInMetersY();
         // ROS_INFO("PathAgent constructor started");
         //   // Initialization code
         // ROS_INFO("PathAgent initialized parameters");
@@ -27,6 +31,9 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
     path_=path;
     start_point_= path_.front();
     goal_point_ = path_.back();
+    // ROS_INFO("Start point is (%.4f, %.4f)", start_point_.first, start_point_.second);
+    // ROS_INFO("Goal point is (%.4f, %.4f)", goal_point_.first, goal_point_.second);
+
     // X exclude start and goal points. they are fixed points
     vec_size = static_cast<uint16_t>(2*path_.size()-4);
     // Initialize X
@@ -36,13 +43,14 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
     for (int i = 0; i < vec_size; i += 2) {
         X.at(i) = static_cast<float>(it->first);
         X.at(i+1) = static_cast<float>(it->second);
-        // ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
+        ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
         ++it;  // Move to the next element in the list
     }
     D.set_size(vec_size);
     D2.set_size(vec_size);
     // ROS_INFO("Agent Size: %d", vec_size);
     // ROS_INFO("Done initializing");
+
 }
 
 
@@ -111,40 +119,79 @@ circular update
 */
 void PathAgent::circularUpdate(arma::vec search_agent) {
   arma::vec D=arma::abs(C*search_agent-X);
+  ROS_INFO("A=%.4f", A);
+  ROS_INFO("C=%.4f", C);
+
+  // for(int k=0; k<vec_size; k+=2){
+  //   ROS_INFO("D %d-th element is: (%.4f, %.4f)", k/2+1, D.at(k), D.at(k+1));
+  // }
+  // for(int k=0; k<vec_size; k+=2){
+  //   ROS_INFO("Search agent %d-th element is: (%.4f, %.4f)", k/2+1, search_agent.at(k), search_agent.at(k+1));
+  // }
   arma::vec Xnew;
   Xnew=search_agent-A*D;
-
+  // ROS_INFO("Xnew before collision check");
+  // for(int k=0; k<vec_size; k+=2){
+  //   ROS_INFO("Xnew %d-th element is: (%.4f, %.4f)", k/2+1, Xnew.at(k), Xnew.at(k+1));
+  // }
   bool collides=false;
-  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1))){
+
+  if (Xnew.has_nan()) {
+      ROS_ERROR("Xnew contains NaN values!");
+  }
+  if (Xnew.has_inf()) {
+      ROS_ERROR("Xnew contains Inf values!");
+  }
+
+  // Collision test
+  // if 1st point collides or obstacle between 1st point and start_point_
+  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
     collides=true;
+    ROS_WARN("Start point collides with next point");
   }
+  // if last point collides or obstacle between last point and goal point 
+  if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
+    collides=true;
+    ROS_WARN("Goal point collides with previous point");
+  }
+
+  // collision check for each new point in Xnew and between its preceeding point 
   int k=2;
-  if (arma::all(Xnew < 20)){
-    // X not large
-    while (!collides && k<vec_size){
-      if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
-        collides=true;
-      }
-      if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
-        collides=true;
-      }
-      k+=2;
+
+  while (!collides && k<vec_size){
+    if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
+      collides=true;
     }
-    // if no point in Xnew collides
-    if (!collides){
-      // update X
-      X=Xnew;
-      // display X
-      for (int j=0; j<vec_size; j+=2){
-        // ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
-      }
+    if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
+      collides=true;
     }
+    
+    // boundary check X
+    if(Xnew.at(k)>map_width_){
+      Xnew.at(k)=map_width_;
+      ROS_WARN("Xnew (x) is too large");
+    }
+
+    // boundary check Y
+    if(Xnew.at(k+1)>map_height_){
+      Xnew.at(k+1)=map_height_;
+      ROS_WARN("Xnew (y) is too large");
+    }
+
+    k+=2;
   }
-  else{
-    // X large
-    // ROS_WARN("X value is too large!");
+  
+  // if new path does not pass by any obstacle
+  if (!collides){
+    // update X
+    X=Xnew;
+    // display X
+    // for (int j=0; j<vec_size; j+=2){
+    //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+    // }
   }
-}
+  }
+
 
 /*
 spiral update
@@ -154,35 +201,61 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
   arma::vec Xnew;
   Xnew=search_agent+(std::exp(b*l)*std::cos(2*M_PI*l))*D2;
 
+  
   bool collides=false;
-  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1))){
+  // check for invalid values
+  if (Xnew.has_nan()) {
+      ROS_ERROR("Xnew contains NaN values!");
+  }
+  if (Xnew.has_inf()) {
+      ROS_ERROR("Xnew contains Inf values!");
+  }
+
+  // Collision test
+  // if 1st point collides or obstacle between 1st point and start_point_
+  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
     collides=true;
+    ROS_WARN("Start point collides with next point");
   }
+  // if last point collides or obstacle between last point and goal point 
+  if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
+    collides=true;
+    ROS_WARN("Goal point collides with previous point");
+  }
+
+  // collision check for each new point in Xnew and between its preceeding point 
   int k=2;
-  if (arma::all(Xnew < 20)){
-    // X not large
-    while (!collides && k<vec_size){
-      if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
-        collides=true;
-      }
-      if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
-        collides=true;
-      }
-      k+=2;
+  
+  while (!collides && k<vec_size){
+    if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
+      collides=true;
     }
-    // if no point in Xnew collides
-    if (!collides){
-      // update X
-      X=Xnew;
-      // display X
-      for (int j=0; j<vec_size; j+=2){
-        // ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
-      }
+    if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
+      collides=true;
     }
+    
+    // boundary check X
+    if(Xnew.at(k)>map_width_){
+      Xnew.at(k)=map_width_;
+      ROS_WARN("Xnew (x) is too large");
+    }
+    // boundary check Y
+    if(Xnew.at(k+1)>map_height_){
+      Xnew.at(k+1)=map_height_;
+      ROS_WARN("Xnew (y) is too large");
+    }
+
+    k+=2;
   }
-  else{
-    // X large
-    // ROS_WARN("X value is too large!");
+  
+  // if new path does not pass by any obstacle
+  if (!collides){
+    // update X
+    X=Xnew;
+    // display X
+    // for (int j=0; j<vec_size; j+=2){
+    //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+    // }
   }
 }
 

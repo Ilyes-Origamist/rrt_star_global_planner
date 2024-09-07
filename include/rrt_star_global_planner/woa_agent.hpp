@@ -36,8 +36,12 @@ class PathAgent {
   // // Move assignment operator
   // PathAgent& operator=(PathAgent&& other) noexcept;
  
-  float sampling_radius_{0.1};
   // public data variables 
+  float sampling_radius_{0.1};
+  costmap_2d::Costmap2D* costmap_{nullptr};
+  float map_height_;
+  float map_width_;
+  
 
   // the vector representing the path
   arma::vec X;

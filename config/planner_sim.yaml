@@ -2,7 +2,7 @@
 
 RRTStarPlanner:
   # rrt star parameters
-  goal_tolerance: 0.15
+  goal_tolerance: 0.2
   radius: 0.6
   epsilon: 0.2
   max_num_nodes: 10000

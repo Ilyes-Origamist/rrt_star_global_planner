@@ -247,13 +247,22 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Initial best cost %.6f", best_cost);
   // agent size data member
   agent_size_= agents[0]->vec_size;
-  arma::vec Xbest; // best agent  
-  Xbest.set_size(agent_size_);
+  ROS_INFO("Agent size: %d", agent_size_);
+  // arma::vec Xbest; // best agent  
+  // Xbest.set_size(agent_size_);
+  arma::vec Xbest = arma::zeros<arma::vec>(agent_size_);  // Initialize Xbest with zeros
+
+  // Xbest.print("Vector initialized with zeros:");
+
   float fitness;
+
+  float circular_rate=0;
+  float spiral_rate=0;
+
   //---------------
   // Main Loop
   for (int t=0; t<N; t++){
-    // ROS_INFO("Iteration number %d", t);
+    ROS_INFO("Iteration number %d", t);
     //---------------
     // Update Xbest
     for (size_t i = 0; i < agents.size(); ++i) {
@@ -265,11 +274,14 @@ for (int i = 0; i < Ng; ++i) {
         Xbest=agents[i]->X;
         best_cost=fitness;
         // ROS_INFO("Current Best cost (iteration %d): %.6f", t, best_cost);
-        for (int j=0; j<agent_size_; j+=2){
-          // ROS_INFO("Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
-        }
       }
     }
+    // display Xbest
+    for (int j=0; j<agent_size_; j+=2){
+      ROS_INFO("Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
+    }
+    ROS_INFO("-----Best Cost: %.4f", best_cost);
+    
     // update a
     a=2-2*t/N;
 
@@ -277,6 +289,9 @@ for (int i = 0; i < Ng; ++i) {
     // Iterate over each agent
     for (int i = 0; i < Ng; ++i) {
       auto& Xi=*agents[i];
+      if (agents[i]==nullptr){
+        ROS_WARN("Null pointer on agent %d",i);
+      }
       // update the random variables
       p=p_rand.generate();
       r=r_rand.generate();
@@ -286,40 +301,67 @@ for (int i = 0; i < Ng; ++i) {
       Xi.A=A;
       Xi.C=C;
       if (p<0.5){
+        circular_rate+=100/(N*Ng);
         // Circular Search
         if (std::abs(A)>=1){
           // Exploration
           rand=rand_index.generateInt(); // random index
+          // valid pointer check
+          if (agents[rand]==nullptr){
+            ROS_WARN("Null pointer on the random agent");
+          }
+          arma::vec search_ag = agents[rand]->X;
+          // for (int k=0; k<agent_size_; k+=2){
+          //   ROS_INFO("Xrand %d-th point: (%.4f, %.4f)", k/2+1, search_ag.at(k), search_ag.at(k+1));
+          // }
           Xi.circularUpdate(agents[rand]->X); // update Xi using Xrand 
+          if (search_ag.n_elem != agent_size_){
+            ROS_WARN("Search agent size mismatch");
+          }
         }
         else{
           // Exploitation
           Xi.circularUpdate(Xbest); // update Xi using Xbest 
+          // for (int k=0; k<agent_size_; k+=2){
+          //   ROS_INFO("Xbest %d-th point: (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
+          // }
+          if (Xbest.n_elem != agent_size_){
+            ROS_WARN("Best agent size mismatch");
+          }
         }
       }
 
       else if (p>=0.5){
+        spiral_rate+=100/(N*Ng);
         // Spiral Search
         l=l_rand.generate();
         Xi.l=l; // update l
-        Xi.spiralUpdate(Xbest);
+        // Xi.spiralUpdate(Xbest);
+        Xi.circularUpdate(Xbest);
+        // for (int k=0; k<agent_size_; k+=2){
+        //   ROS_INFO("Xbest %d-th point (spiral): (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
+        // }
       }
     }
 
   }
 
   // Update Xbest after the end
-    for (size_t i = 0; i < agents.size(); ++i) {
-      // Access the i-th object
-      fitness=agents[i]->fitness(); // cost(Xi)
-      // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-      if (fitness < best_cost){
-        // update Xbest if there is a better solution
-        Xbest=agents[i]->X;
-        best_cost=fitness;
-        // ROS_INFO("Current Best cost: %.4f", best_cost);
-      }
+  for (size_t i = 0; i < agents.size(); ++i) {
+    // Access the i-th object
+    fitness=agents[i]->fitness(); // cost(Xi)
+    // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
+    if (fitness < best_cost){
+      // update Xbest if there is a better solution
+      Xbest=agents[i]->X;
+      best_cost=fitness;
+      // ROS_INFO("Best cost: %.4f", best_cost);
     }
+  }
+
+  ROS_INFO("Circular rate = %.2f", circular_rate);
+  ROS_INFO("Spiral rate = %.2f", spiral_rate);
+
   // ROS_INFO("WOA ran for %d iterations", N);
   agentToPath(Xbest, path);
   // ROS_INFO("Start point (%.4f, %.4f)",agents[0]->start_point_.first, agents[0]->start_point_.second);
@@ -330,7 +372,7 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Xbest size %d", agent_size_);
 
   for(int i=0; i<agent_size_; i+=2){
-    // ROS_INFO("Best agent %d-th point: (%.4f, %.4f)", i/2+1, Xbest.at(i), Xbest.at(i+1));
+    ROS_INFO("Best agent %d-th point: (%.4f, %.4f)", i/2+1, Xbest.at(i), Xbest.at(i+1));
   }
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end_time - start_time;
