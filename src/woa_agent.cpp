@@ -316,7 +316,7 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
   // starting from the second node
 
   // main loop
-  while (it != path.end()) {
+  while (it != std::prev(path.end())) {
     ROS_INFO("Current iterator from initial path: (%.4f, %.4f)", it->first, it->second);
     found_next = false; // Reset found_next before the inner loop
     while (!found_next) {

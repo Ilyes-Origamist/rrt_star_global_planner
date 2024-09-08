@@ -124,22 +124,41 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                                                   map_height_));
 
   std::list<std::pair<float, float>> path;
+  std::list<std::pair<float, float>> rand_path;
   ROS_INFO("Started computing path with RRT*");
 
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
-    ROS_INFO("Proceeding to path optimization with WOA");
+    ROS_INFO("Initial Path found!");
+
+    // test agent
+    PathAgent test_agent(path, sampling_radius_, -1, costmap_, b_);
+    // Initialization procedure
     if (path.size()>2){
-      woaOptimizePath(path, N_, Ng_, b_);
-      computeFinalPlan(plan, path);
-      ROS_INFO("WOA Executed successfully. New path is published.");
+      rand_path=test_agent.randomInitialPath(path);
+      computeFinalPlan(plan, rand_path);
+      ROS_INFO("random initial path is published.");
     }
     else {
-      ROS_INFO("Path contains only two points. No WOA optimization.");
+      ROS_INFO("Path contains only two points.");
     }
+
+    // WOA
+
+    // ROS_INFO("Proceeding to path optimization with WOA");
+    // if (path.size()>2){
+    //   woaOptimizePath(path, N_, Ng_, b_);
+    //   computeFinalPlan(plan, path);
+    //   ROS_INFO("WOA Executed successfully. New path is published.");
+    // }
+    // else {
+    //   ROS_INFO("Path contains only two points. No WOA optimization.");
+    // }
     return true;
 
-  } else {
+  }
+  
+  else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
     return false;
   }
@@ -262,7 +281,7 @@ for (int i = 0; i < Ng; ++i) {
   //---------------
   // Main Loop
   for (int t=0; t<N; t++){
-    ROS_INFO("Iteration number %d", t);
+    // ROS_INFO("Iteration number %d", t);
     //---------------
     // Update Xbest
     for (size_t i = 0; i < agents.size(); ++i) {
@@ -277,10 +296,10 @@ for (int i = 0; i < Ng; ++i) {
       }
     }
     // display Xbest
-    for (int j=0; j<agent_size_; j+=2){
-      ROS_INFO("Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
-    }
-    ROS_INFO("-----Best Cost: %.4f", best_cost);
+    // for (int j=0; j<agent_size_; j+=2){
+    //   ROS_INFO("Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
+    // }
+    // ROS_INFO("-----Best Cost: %.4f", best_cost);
     
     // update a
     a=2-2*t/N;
