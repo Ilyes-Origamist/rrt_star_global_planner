@@ -55,6 +55,7 @@ class PathAgent {
   float b;
   std::pair<float, float> start_point_;
   std::pair<float, float> goal_point_;
+  std::list<std::pair<float, float>> initial_path_;
 
   /**
    * @brief uses circular search to update the agent Xi 

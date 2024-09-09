@@ -131,31 +131,30 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     computeInitialPlan(plan, path);
     ROS_INFO("Initial Path found!");
 
-    // test agent
-    PathAgent test_agent(path, sampling_radius_, -1, costmap_, b_);
-    // Initialization procedure
-    if (path.size()>2){
-      rand_path=test_agent.randomInitialPath(path);
-      computeFinalPlan(plan, rand_path);
-      ROS_INFO("random initial path is published.");
-    }
-    else {
-      ROS_INFO("Path contains only two points.");
-    }
-
-    // WOA
-
-    // ROS_INFO("Proceeding to path optimization with WOA");
+    // randomInitialPath test:
+    // test agent 
+    // PathAgent test_agent(path, sampling_radius_, -1, costmap_, b_);
+    // // Initialization procedure
     // if (path.size()>2){
-    //   woaOptimizePath(path, N_, Ng_, b_);
-    //   computeFinalPlan(plan, path);
-    //   ROS_INFO("WOA Executed successfully. New path is published.");
+    //   rand_path=test_agent.randomInitialPath(path);
+    //   computeFinalPlan(plan, rand_path);
+    //   ROS_INFO("random initial path is published.");
     // }
     // else {
-    //   ROS_INFO("Path contains only two points. No WOA optimization.");
+    //   ROS_INFO("Path contains only two points.");
     // }
-    return true;
 
+    // WOA
+    ROS_INFO("Proceeding to path optimization with WOA");
+    if (path.size()>2){
+      woaOptimizePath(path, N_, Ng_, b_);
+      computeFinalPlan(plan, path);
+      ROS_INFO("WOA Executed successfully. New path is published.");
+    }
+    else {
+      ROS_INFO("Path contains only two points. No WOA optimization.");
+    }
+    return true;
   }
   
   else {
@@ -247,12 +246,17 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
   initial_path=path;
   // initialize each agent
   // ROS_INFO("Creating Agent objects");
-
+  std::vector<geometry_msgs::PoseStamped> plan;
+  ROS_INFO("Initializing whales population");
 for (int i = 0; i < Ng; ++i) {
     agents.emplace_back(std::make_unique<PathAgent>(initial_path, sampling_radius_, i, costmap_, spiral_shape));
     // ROS_INFO("Created agent %d", i);
     // constructor: object_name(path, sampling_radius, id, costmap_ptr, b)
     // initialize random path
+    // display random initial path for each
+    computeFinalPlan(plan, agents[i]->initial_path_);
+    ROS_INFO("Displaying %d-th agent's initial path.", i+1);
+    ros::Duration(0.2).sleep();  
   }
   ROS_INFO("Created %ld agents", agents.size());
   ROS_INFO("Initialized WOA successfully");
@@ -355,8 +359,8 @@ for (int i = 0; i < Ng; ++i) {
         // Spiral Search
         l=l_rand.generate();
         Xi.l=l; // update l
-        // Xi.spiralUpdate(Xbest);
-        Xi.circularUpdate(Xbest);
+        Xi.spiralUpdate(Xbest);
+        // Xi.circularUpdate(Xbest);
         // for (int k=0; k<agent_size_; k+=2){
         //   ROS_INFO("Xbest %d-th point (spiral): (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
         // }

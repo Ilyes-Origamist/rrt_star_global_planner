@@ -26,9 +26,11 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
         // ROS_INFO("PathAgent initialized parameters");
         //   // Additional setup
         // ROS_INFO("PathAgent setup complete");
+
     // initialize path
-    // path_ = randomInitialPath(path);
-    path_=path;
+    path_ = randomInitialPath(path);
+    initial_path_=path_;
+    // path_=path;
     start_point_= path_.front();
     goal_point_ = path_.back();
     // ROS_INFO("Start point is (%.4f, %.4f)", start_point_.first, start_point_.second);
@@ -46,8 +48,11 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
         ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
         ++it;  // Move to the next element in the list
     }
-    D.set_size(vec_size);
-    D2.set_size(vec_size);
+
+    // D.set_size(vec_size);
+    // D2.set_size(vec_size);
+    arma::vec D = arma::zeros<arma::vec>(vec_size); 
+    arma::vec D2 = arma::zeros<arma::vec>(vec_size); 
     // ROS_INFO("Agent Size: %d", vec_size);
     // ROS_INFO("Done initializing");
 
