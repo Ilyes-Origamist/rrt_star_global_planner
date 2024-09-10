@@ -53,16 +53,16 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
     return (isThisPointCollides(point.first, point.second)) ? true : false;
   } 
   else {
-    int steps_number = static_cast<int>(floor(dist/(resolution_)+2));
+    int steps_number = static_cast<int>(floor(dist/(resolution_))+2);
     // ROS_INFO("Steps number: %d", steps_number);
 
     float theta = atan2(node.y - point.second, node.x - point.first);
     // ROS_INFO("Theta: %.4f", theta);
 
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number; n++) {
-      p_n.first = node.x + n*resolution_*cos(theta);
-      p_n.second = node.y + n*resolution_*sin(theta);
+    for (int n = 0; n < steps_number*4; n++) {
+      p_n.first = node.x + n*resolution_*cos(theta)/4.0;
+      p_n.second = node.y + n*resolution_*sin(theta)/4.0;
       // ROS_INFO("Checking point (%.4f, %.4f)", p_n.first, p_n.second);
 
       if (isThisPointCollides(p_n.first, p_n.second)) {

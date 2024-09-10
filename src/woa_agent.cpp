@@ -45,7 +45,7 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
     for (int i = 0; i < vec_size; i += 2) {
         X.at(i) = static_cast<float>(it->first);
         X.at(i+1) = static_cast<float>(it->second);
-        ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
+        // ROS_INFO("Initial Agent Path: point %d-th: (%.4f, %.4f)", i/2+1, X.at(i), X.at(i+1));
         ++it;  // Move to the next element in the list
     }
 
@@ -124,8 +124,8 @@ circular update
 */
 void PathAgent::circularUpdate(arma::vec search_agent) {
   arma::vec D=arma::abs(C*search_agent-X);
-  ROS_INFO("A=%.4f", A);
-  ROS_INFO("C=%.4f", C);
+  // ROS_INFO("A=%.4f", A);
+  // ROS_INFO("C=%.4f", C);
 
   // for(int k=0; k<vec_size; k+=2){
   //   ROS_INFO("D %d-th element is: (%.4f, %.4f)", k/2+1, D.at(k), D.at(k+1));
@@ -152,12 +152,12 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
   // if 1st point collides or obstacle between 1st point and start_point_
   if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
     collides=true;
-    ROS_WARN("Start point collides with next point");
+    // ROS_WARN("Start point collides with next point");
   }
   // if last point collides or obstacle between last point and goal point 
   if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
     collides=true;
-    ROS_WARN("Goal point collides with previous point");
+    // ROS_WARN("Goal point collides with previous point");
   }
 
   // collision check for each new point in Xnew and between its preceeding point 
@@ -220,12 +220,12 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
   // if 1st point collides or obstacle between 1st point and start_point_
   if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
     collides=true;
-    ROS_WARN("Start point collides with next point");
+    // ROS_WARN("Start point collides with next point");
   }
   // if last point collides or obstacle between last point and goal point 
   if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
     collides=true;
-    ROS_WARN("Goal point collides with previous point");
+    // ROS_WARN("Goal point collides with previous point");
   }
 
   // collision check for each new point in Xnew and between its preceeding point 
@@ -315,14 +315,14 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
   int num_travels_=0;
   auto it = path.begin();  // Iterator to traverse the list
   rand_path.push_front(*it);
-  ROS_INFO("First iterator: (%.4f, %.4f)", it->first, it->second);
+  // ROS_INFO("First iterator: (%.4f, %.4f)", it->first, it->second);
   ++it;
   int i=2;
   // starting from the second node
 
   // main loop
-  while (it != std::prev(path.end())) {
-    ROS_INFO("Current iterator from initial path: (%.4f, %.4f)", it->first, it->second);
+  while (it != path.end()) {
+    // ROS_INFO("Current iterator from initial path: (%.4f, %.4f)", it->first, it->second);
     found_next = false; // Reset found_next before the inner loop
     while (!found_next) {
       // current node = path[i] when traveling
@@ -339,20 +339,20 @@ std::list<std::pair<float, float>> PathAgent::randomInitialPath(std::list<std::p
       if (!collision_.isThereObstacleBetween(prev_point, rand_point)) {
         found_next = true;
         rand_path.push_back(rand_point);
-        ROS_INFO("Adding point from randomInitialPath: (%.4f, %.4f)", rand_point.first, rand_point.second);
+        // ROS_INFO("Adding point from randomInitialPath: (%.4f, %.4f)", rand_point.first, rand_point.second);
       }
       // else loop until found_next=true
     }
-    ROS_INFO("Just processed the %d-th element", i);
+    // ROS_INFO("Just processed the %d-th element", i);
     i++;
     // moving to next node
     ++it;
     }
-    ROS_INFO("Last iterator (after loop): (%.4f, %.4f)", it->first, it->second);
-    ROS_INFO("Now number of last element: %d", i);
-    rand_path.push_back(*it); // last point
+    // ROS_INFO("Last iterator (after loop): (%.4f, %.4f)", it->first, it->second);
+    // ROS_INFO("Now number of last element: %d", i);
+    // rand_path.push_back(*it); // last point
     // rand_path.push_back(std::make_pair(it->first, it->second)); // last point
-    ROS_INFO("Path length %ld", rand_path.size());
+    // ROS_INFO("Path length %ld", rand_path.size());
     return rand_path;
   }
 

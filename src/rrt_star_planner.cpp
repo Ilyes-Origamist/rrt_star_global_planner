@@ -253,10 +253,13 @@ for (int i = 0; i < Ng; ++i) {
     // ROS_INFO("Created agent %d", i);
     // constructor: object_name(path, sampling_radius, id, costmap_ptr, b)
     // initialize random path
+
+    //---------------------------
     // display random initial path for each
-    computeFinalPlan(plan, agents[i]->initial_path_);
-    ROS_INFO("Displaying %d-th agent's initial path.", i+1);
-    ros::Duration(0.2).sleep();  
+    // --------------------------
+    // computeFinalPlan(plan, agents[i]->initial_path_);
+    // ROS_INFO("Displaying %d-th agent's initial path.", i+1);
+    // ros::Duration(0.2).sleep();  
   }
   ROS_INFO("Created %ld agents", agents.size());
   ROS_INFO("Initialized WOA successfully");
@@ -270,7 +273,7 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Initial best cost %.6f", best_cost);
   // agent size data member
   agent_size_= agents[0]->vec_size;
-  ROS_INFO("Agent size: %d", agent_size_);
+  // ROS_INFO("Agent size: %d", agent_size_);
   // arma::vec Xbest; // best agent  
   // Xbest.set_size(agent_size_);
   arma::vec Xbest = arma::zeros<arma::vec>(agent_size_);  // Initialize Xbest with zeros
@@ -279,8 +282,10 @@ for (int i = 0; i < Ng; ++i) {
 
   float fitness;
 
-  float circular_rate=0;
-  float spiral_rate=0;
+  // float circular_rate=0;
+  // float spiral_rate=0;
+  // float circular_exploration_rate=0;
+  // float circular_exploitation_rate=0;
 
   //---------------
   // Main Loop
@@ -324,10 +329,11 @@ for (int i = 0; i < Ng; ++i) {
       Xi.A=A;
       Xi.C=C;
       if (p<0.5){
-        circular_rate+=100/(N*Ng);
+        // circular_rate+=100.0/(N*Ng);
         // Circular Search
         if (std::abs(A)>=1){
           // Exploration
+          // circular_exploration_rate+=100.0/(N*Ng);
           rand=rand_index.generateInt(); // random index
           // valid pointer check
           if (agents[rand]==nullptr){
@@ -344,6 +350,7 @@ for (int i = 0; i < Ng; ++i) {
         }
         else{
           // Exploitation
+          // circular_exploitation_rate+=100.0/(N*Ng);
           Xi.circularUpdate(Xbest); // update Xi using Xbest 
           // for (int k=0; k<agent_size_; k+=2){
           //   ROS_INFO("Xbest %d-th point: (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
@@ -355,7 +362,7 @@ for (int i = 0; i < Ng; ++i) {
       }
 
       else if (p>=0.5){
-        spiral_rate+=100/(N*Ng);
+        // spiral_rate+=100.0/(N*Ng);
         // Spiral Search
         l=l_rand.generate();
         Xi.l=l; // update l
@@ -382,8 +389,58 @@ for (int i = 0; i < Ng; ++i) {
     }
   }
 
-  ROS_INFO("Circular rate = %.2f", circular_rate);
-  ROS_INFO("Spiral rate = %.2f", spiral_rate);
+  // -----------------------------------------------------------------------
+  // Collision test
+  bool collides=false;
+  std::pair<float, float> start_point_= path.front();
+  std::pair<float, float> goal_point_ = path.back();
+  CollisionDetector collision_(costmap_);
+  // if 1st point collides or obstacle between 1st point and start_point_
+  if (collision_.isThisPointCollides(Xbest.at(0), Xbest.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xbest.at(0), Xbest.at(1)))){
+    collides=true;
+    ROS_WARN("Start point collides with next point");
+  }
+  // if last point collides or obstacle between last point and goal point 
+  if (collision_.isThisPointCollides(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)))){
+    collides=true;
+    ROS_WARN("Goal point collides with previous point");
+  }
+
+  // collision check for each new point in Xbest and between its preceeding point 
+  int k=2;
+
+  while (!collides && k<agent_size_){
+    if (collision_.isThisPointCollides(Xbest.at(k), Xbest.at(k+1))){
+      collides=true;
+    }
+    if (collision_.isThereObstacleBetween(std::make_pair(Xbest.at(k-2), Xbest.at(k-1)), std::make_pair(Xbest.at(k), Xbest.at(k+1)))){
+      collides=true;
+    }
+    
+    // boundary check X
+    if(Xbest.at(k)>map_width_){
+      Xbest.at(k)=map_width_;
+      ROS_WARN("Xbest (x) is too large");
+    }
+
+    // boundary check Y
+    if(Xbest.at(k+1)>map_height_){
+      Xbest.at(k+1)=map_height_;
+      ROS_WARN("Xbest (y) is too large");
+    }
+
+    k+=2;
+  }
+
+  if(collides) ROS_WARN("There is collision in the path found.");
+  else ROS_INFO("No collision found on the path.");
+  // -----------------------------------------------------------------------
+
+
+  // ROS_INFO("Circular Exploration rate = %.2f", circular_exploration_rate);
+  // ROS_INFO("Circular Exploitation rate = %.2f", circular_exploitation_rate);
+  // ROS_INFO("Circular rate = %.2f", circular_rate);
+  // ROS_INFO("Spiral rate = %.2f", spiral_rate);
 
   // ROS_INFO("WOA ran for %d iterations", N);
   agentToPath(Xbest, path);
@@ -394,9 +451,9 @@ for (int i = 0; i < Ng; ++i) {
 
   // ROS_INFO("Xbest size %d", agent_size_);
 
-  for(int i=0; i<agent_size_; i+=2){
-    ROS_INFO("Best agent %d-th point: (%.4f, %.4f)", i/2+1, Xbest.at(i), Xbest.at(i+1));
-  }
+  // for(int i=0; i<agent_size_; i+=2){
+  //   ROS_INFO("Best agent %d-th point: (%.4f, %.4f)", i/2+1, Xbest.at(i), Xbest.at(i+1));
+  // }
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end_time - start_time;
   ROS_INFO("Time taken to optimize path with WOA: %f seconds", diff.count());
