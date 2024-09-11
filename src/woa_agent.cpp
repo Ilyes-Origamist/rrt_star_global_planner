@@ -152,7 +152,7 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
   }
 
   // // update X despite colliding
-  // X=Xnew;
+  X=Xnew;
 
   // Collision test
   // if 1st point collides or obstacle between 1st point and start_point_
@@ -195,14 +195,14 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
   }
   
   // if new path does not pass by any obstacle
-  if (!collides){
-    // update X
-    X=Xnew;
-    // display X
-    // for (int j=0; j<vec_size; j+=2){
-    //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
-    // }
-  }
+  // if (!collides){
+  //   // update X
+  //   X=Xnew;
+  //   // display X
+  //   // for (int j=0; j<vec_size; j+=2){
+  //   //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+  //   // }
+  // }
   }
 
 
@@ -225,7 +225,7 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
   }
 
   // // update X despite colliding
-  // X=Xnew;
+  X=Xnew;
 
   // Collision test
   // if 1st point collides or obstacle between 1st point and start_point_
@@ -267,14 +267,14 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
   }
   
   // if new path does not pass by any obstacle
-  if (!collides){
-    // update X
-    X=Xnew;
-    // display X
-    // for (int j=0; j<vec_size; j+=2){
-    //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
-    // }
-  }
+  // if (!collides){
+  //   // update X
+  //   X=Xnew;
+  //   // display X
+  //   // for (int j=0; j<vec_size; j+=2){
+  //   //   ROS_INFO("Agent circular update: %d-th point: (%.4f, %.4f)", k/2+1, X.at(j), X.at(j+1));
+  //   // }
+  // }
 }
 
 float PathAgent::fitness() {

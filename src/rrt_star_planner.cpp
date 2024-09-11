@@ -318,7 +318,8 @@ for (int i = 0; i < Ng; ++i) {
       // Access the i-th object
       fitness=agents[i]->fitness(); // cost(Xi)
       // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-      if (fitness < best_cost){
+      // !(agents[i]->collides)
+      if (fitness < best_cost && !(agents[i]->collides)){
         // update Xbest if there is a better solution that does not collide
         Xbest=agents[i]->X;
         best_cost=fitness;
