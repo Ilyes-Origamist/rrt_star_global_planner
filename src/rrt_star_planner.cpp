@@ -125,16 +125,32 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   std::list<std::pair<float, float>> path;
   std::list<std::pair<float, float>> rand_path;
+
+  // -------------------------------
+  // Testing collision detector
+  // -------------------------------
+  // ROS_INFO("Testing collision detector");
+  // std::list<std::pair<float,float>> test_path={{0.0,0.0},{3.0,-1.9}};
+  // computeFinalPlan(plan,test_path);
+  // CollisionDetector coll_(costmap_);
+  // bool collision_test=coll_.isThereObstacleBetween(test_path.front(),test_path.back());
+  // if (collision_test==false) ROS_INFO("no collision");
+  // else ROS_WARN("There is collision");
+  // return false;
+
+  // -------------------------------
+  //     RRT* Initial  Path 
+  // -------------------------------
   ROS_INFO("Started computing path with RRT*");
 
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
-    ROS_INFO("Initial Path found!");
-
+    // -------------------------------
+    // Test Agent
+    // -------------------------------
     // randomInitialPath test:
-    // test agent 
     // PathAgent test_agent(path, sampling_radius_, -1, costmap_, b_);
-    // // Initialization procedure
+    // Initialization procedure
     // if (path.size()>2){
     //   rand_path=test_agent.randomInitialPath(path);
     //   computeFinalPlan(plan, rand_path);
@@ -144,7 +160,10 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     //   ROS_INFO("Path contains only two points.");
     // }
 
-    // WOA
+    // -------------------------------
+    //     WOA  Path  Optimization
+    // -------------------------------
+  
     ROS_INFO("Proceeding to path optimization with WOA");
     if (path.size()>2){
       woaOptimizePath(path, N_, Ng_, b_);
@@ -236,7 +255,6 @@ void  RRTStarPlanner::computeInitialPlan(std::vector<geometry_msgs::PoseStamped>
 void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape) {
   // Initialization
   //---------------
-  auto start_time = std::chrono::high_resolution_clock::now();
   // vector containing pointer to all the agents
   // using pointer to avoid moving the object PAthAgent
   // which will make errors since RandomDoubleGenerator is non-movable
@@ -257,12 +275,16 @@ for (int i = 0; i < Ng; ++i) {
     //---------------------------
     // display random initial path for each
     // --------------------------
-    // computeFinalPlan(plan, agents[i]->initial_path_);
-    // ROS_INFO("Displaying %d-th agent's initial path.", i+1);
-    // ros::Duration(0.2).sleep();  
+    computeFinalPlan(plan, agents[i]->initial_path_);
+    ROS_INFO("Displaying %d-th agent's initial path.", i+1);
+    ros::Duration(0.25).sleep(); 
   }
   ROS_INFO("Created %ld agents", agents.size());
   ROS_INFO("Initialized WOA successfully");
+
+  // start counting time
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   // Random variables
   float p, r, l, a;
   float A, C;
@@ -297,8 +319,8 @@ for (int i = 0; i < Ng; ++i) {
       // Access the i-th object
       fitness=agents[i]->fitness(); // cost(Xi)
       // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-      if (fitness < best_cost){
-        // update Xbest if there is a better solution
+      if (fitness < best_cost && !(agents[i]->collides)){
+        // update Xbest if there is a better solution that does not collide
         Xbest=agents[i]->X;
         best_cost=fitness;
         // ROS_INFO("Current Best cost (iteration %d): %.6f", t, best_cost);
@@ -380,9 +402,10 @@ for (int i = 0; i < Ng; ++i) {
   for (size_t i = 0; i < agents.size(); ++i) {
     // Access the i-th object
     fitness=agents[i]->fitness(); // cost(Xi)
+    if (agents[i]->collides) ROS_WARN("Agent Actually collides");
     // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-    if (fitness < best_cost){
-      // update Xbest if there is a better solution
+    if (fitness < best_cost && !(agents[i]->collides)){
+      // update Xbest if there is a better solution that does not collide
       Xbest=agents[i]->X;
       best_cost=fitness;
       // ROS_INFO("Best cost: %.4f", best_cost);

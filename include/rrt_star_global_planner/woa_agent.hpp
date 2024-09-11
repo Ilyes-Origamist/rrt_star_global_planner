@@ -41,6 +41,7 @@ class PathAgent {
   costmap_2d::Costmap2D* costmap_{nullptr};
   float map_height_;
   float map_width_;
+  bool collides{false};
   
 
   // the vector representing the path
@@ -55,7 +56,7 @@ class PathAgent {
   float b;
   std::pair<float, float> start_point_;
   std::pair<float, float> goal_point_;
-  std::list<std::pair<float, float>> initial_path_;
+  std::list<std::pair<float, float>> initial_path_; // for display
 
   /**
    * @brief uses circular search to update the agent Xi 

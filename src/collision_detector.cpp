@@ -13,6 +13,7 @@ CollisionDetector::CollisionDetector(costmap_2d::Costmap2D* costmap) : costmap_(
     origin_x_ = costmap_->getOriginX();
     origin_y_ = costmap_->getOriginY();
   }
+  else ROS_ERROR("NULL pointer for costmap");
 }
 
 bool CollisionDetector::isThisPointCollides(float wx, float wy) {
@@ -53,16 +54,22 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
     return (isThisPointCollides(point.first, point.second)) ? true : false;
   } 
   else {
-    int steps_number = static_cast<int>(floor(dist/(resolution_))+2);
+    // check if last point collides
+    if (isThisPointCollides(point.first, point.second)){
+      // ROS_WARN("Collision detected at goal point. Exiting collision test");
+      return true;
+    }
+    // compute step number
+    int steps_number = static_cast<int>(floor(dist/(resolution_))+1);
     // ROS_INFO("Steps number: %d", steps_number);
 
-    float theta = atan2(node.y - point.second, node.x - point.first);
+    float theta = atan2(-node.y + point.second, -node.x + point.first);
     // ROS_INFO("Theta: %.4f", theta);
 
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number*4; n++) {
-      p_n.first = node.x + n*resolution_*cos(theta)/4.0;
-      p_n.second = node.y + n*resolution_*sin(theta)/4.0;
+    for (int n = 0; n < steps_number; n++) {
+      p_n.first = node.x + n*resolution_*cos(theta);
+      p_n.second = node.y + n*resolution_*sin(theta);
       // ROS_INFO("Checking point (%.4f, %.4f)", p_n.first, p_n.second);
 
       if (isThisPointCollides(p_n.first, p_n.second)) {
@@ -87,8 +94,14 @@ bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &
     return (isThisPointCollides(point2.first, point2.second)) ? true : false;
   } 
   else {
-    int steps_number = static_cast<int>(floor(dist/(resolution_)+2));
-    float theta = atan2(point1.second - point2.second, point1.first - point2.first);
+    // check if last point collides
+    if (isThisPointCollides(point2.first, point2.second)){
+      // ROS_WARN("Collision detected at goal point. Exiting collision test");
+      return true;
+    }
+    // compute step number
+    int steps_number = static_cast<int>(floor(dist/(resolution_)+1));
+    float theta = atan2(-point1.second + point2.second, -point1.first + point2.first);
     std::pair<float, float> p_n;
     for (int n = 0; n < steps_number; n++) {
       p_n.first = point1.first + n*resolution_*cos(theta);
