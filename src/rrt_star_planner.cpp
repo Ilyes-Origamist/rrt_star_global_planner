@@ -298,9 +298,8 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Agent size: %d", agent_size_);
   // arma::vec Xbest; // best agent  
   // Xbest.set_size(agent_size_);
-  arma::vec Xbest = arma::zeros<arma::vec>(agent_size_);  // Initialize Xbest with zeros
-
-  // Xbest.print("Vector initialized with zeros:");
+  arma::vec Xbest ;
+  Xbest = agents[0]->X;
 
   float fitness;
 
@@ -319,7 +318,7 @@ for (int i = 0; i < Ng; ++i) {
       // Access the i-th object
       fitness=agents[i]->fitness(); // cost(Xi)
       // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-      if (fitness < best_cost && !(agents[i]->collides)){
+      if (fitness < best_cost){
         // update Xbest if there is a better solution that does not collide
         Xbest=agents[i]->X;
         best_cost=fitness;
@@ -327,11 +326,13 @@ for (int i = 0; i < Ng; ++i) {
       }
     }
     // display Xbest
-    // for (int j=0; j<agent_size_; j+=2){
-    //   ROS_INFO("Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
+    // if (t==0){
+    //   for (int j=0; j<agent_size_; j+=2){
+    //     ROS_INFO("Initial Best Agent points (iteration %d): (%.4f,%.4f)", t, Xbest(j), Xbest(j+1));
+    //   }
+    //   ROS_INFO("-----Best Cost: %.4f", best_cost);
     // }
-    // ROS_INFO("-----Best Cost: %.4f", best_cost);
-    
+
     // update a
     a=2-2*t/N;
 
@@ -402,7 +403,7 @@ for (int i = 0; i < Ng; ++i) {
   for (size_t i = 0; i < agents.size(); ++i) {
     // Access the i-th object
     fitness=agents[i]->fitness(); // cost(Xi)
-    if (agents[i]->collides) ROS_WARN("Agent Actually collides");
+    // if (agents[i]->collides) ROS_WARN("Agent %d Actually collides", i);
     // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
     if (fitness < best_cost && !(agents[i]->collides)){
       // update Xbest if there is a better solution that does not collide

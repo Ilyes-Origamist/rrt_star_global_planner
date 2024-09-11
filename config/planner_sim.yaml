@@ -7,7 +7,7 @@ RRTStarPlanner:
   epsilon: 0.12
   max_num_nodes: 10000
   # WOA Parameters
-  sampling_radius: 0.3
-  max_iterations: 2500
-  num_agents: 10
+  sampling_radius: 0.2
+  max_iterations: 2000
+  num_agents: 15
   spiral_shape: 0.8

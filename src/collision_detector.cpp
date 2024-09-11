@@ -67,9 +67,9 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
     // ROS_INFO("Theta: %.4f", theta);
 
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number; n++) {
-      p_n.first = node.x + n*resolution_*cos(theta);
-      p_n.second = node.y + n*resolution_*sin(theta);
+    for (int n = 0; n < steps_number*2; n++) {
+      p_n.first = node.x + n*resolution_*cos(theta)/2.0;
+      p_n.second = node.y + n*resolution_*sin(theta)/2.0;
       // ROS_INFO("Checking point (%.4f, %.4f)", p_n.first, p_n.second);
 
       if (isThisPointCollides(p_n.first, p_n.second)) {
@@ -103,9 +103,9 @@ bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &
     int steps_number = static_cast<int>(floor(dist/(resolution_)+1));
     float theta = atan2(-point1.second + point2.second, -point1.first + point2.first);
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number; n++) {
-      p_n.first = point1.first + n*resolution_*cos(theta);
-      p_n.second = point1.second + n*resolution_*sin(theta);
+    for (int n = 0; n < steps_number*2; n++) {
+      p_n.first = point1.first + n*resolution_*cos(theta)/2.0;
+      p_n.second = point1.second + n*resolution_*sin(theta)/2.0;
       if (isThisPointCollides(p_n.first, p_n.second))
         return true;
     }
