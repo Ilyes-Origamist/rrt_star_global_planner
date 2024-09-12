@@ -59,7 +59,7 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     initial_path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/initial_plan", 1, true);
     // RRT Star Parameters
     private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
-    private_nh.param("radius", radius_, 0.5);
+    private_nh.param("rewiring_radius", radius_, 0.5);
     private_nh.param("epsilon", epsilon_, 0.1);
     private_nh.param("max_num_nodes", max_num_nodes_, 5000);
     private_nh.param("min_num_nodes", min_num_nodes_, 500);
@@ -110,6 +110,8 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   ROS_INFO("GOAL Position: ( %.2lf, %.2lf)", goal.pose.position.x, goal.pose.position.y);
   std::pair<float, float> start_point = {start.pose.position.x, start.pose.position.y};
   std::pair<float, float> goal_point = {goal.pose.position.x, goal.pose.position.y};
+  goal_z = goal.pose.orientation.z;
+  goal_w = goal.pose.orientation.w;
 
   planner_ = std::shared_ptr<RRTStar>(new RRTStar(start_point,
                                                   goal_point,
@@ -207,6 +209,10 @@ void  RRTStarPlanner::computeFinalPlan(std::vector<geometry_msgs::PoseStamped>& 
     plan.push_back(pose);
     // ROS_INFO("WOA path: Publishing point: (%.4f,%.4f)", point.first, point.second);
   }
+  geometry_msgs::PoseStamped &last_pose = plan.back();
+  last_pose.pose.orientation.z = goal_z;
+  last_pose.pose.orientation.w = goal_w;
+
   // Publish the path
   nav_msgs::Path path_msg;
   path_msg.header.stamp = plan_time;
@@ -416,49 +422,49 @@ for (int i = 0; i < Ng; ++i) {
 
   // -----------------------------------------------------------------------
   // Collision test
-  bool collides=false;
-  std::pair<float, float> start_point_= path.front();
-  std::pair<float, float> goal_point_ = path.back();
-  CollisionDetector collision_(costmap_);
-  // if 1st point collides or obstacle between 1st point and start_point_
-  if (collision_.isThisPointCollides(Xbest.at(0), Xbest.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xbest.at(0), Xbest.at(1)))){
-    collides=true;
-    ROS_WARN("Start point collides with next point");
-  }
-  // if last point collides or obstacle between last point and goal point 
-  if (collision_.isThisPointCollides(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)))){
-    collides=true;
-    ROS_WARN("Goal point collides with previous point");
-  }
+  // bool collides=false;
+  // std::pair<float, float> start_point_= path.front();
+  // std::pair<float, float> goal_point_ = path.back();
+  // CollisionDetector collision_(costmap_);
+  // // if 1st point collides or obstacle between 1st point and start_point_
+  // if (collision_.isThisPointCollides(Xbest.at(0), Xbest.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xbest.at(0), Xbest.at(1)))){
+  //   collides=true;
+  //   ROS_WARN("Start point collides with next point");
+  // }
+  // // if last point collides or obstacle between last point and goal point 
+  // if (collision_.isThisPointCollides(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xbest.at(agent_size_-2), Xbest.at(agent_size_-1)))){
+  //   collides=true;
+  //   ROS_WARN("Goal point collides with previous point");
+  // }
 
-  // collision check for each new point in Xbest and between its preceeding point 
-  int k=2;
+  // // collision check for each new point in Xbest and between its preceeding point 
+  // int k=2;
 
-  while (!collides && k<agent_size_){
-    if (collision_.isThisPointCollides(Xbest.at(k), Xbest.at(k+1))){
-      collides=true;
-    }
-    if (collision_.isThereObstacleBetween(std::make_pair(Xbest.at(k-2), Xbest.at(k-1)), std::make_pair(Xbest.at(k), Xbest.at(k+1)))){
-      collides=true;
-    }
+  // while (!collides && k<agent_size_){
+  //   if (collision_.isThisPointCollides(Xbest.at(k), Xbest.at(k+1))){
+  //     collides=true;
+  //   }
+  //   if (collision_.isThereObstacleBetween(std::make_pair(Xbest.at(k-2), Xbest.at(k-1)), std::make_pair(Xbest.at(k), Xbest.at(k+1)))){
+  //     collides=true;
+  //   }
     
-    // boundary check X
-    if(Xbest.at(k)>map_width_){
-      Xbest.at(k)=map_width_;
-      ROS_WARN("Xbest (x) is too large");
-    }
+  //   // boundary check X
+  //   if(Xbest.at(k)>map_width_){
+  //     Xbest.at(k)=map_width_;
+  //     ROS_WARN("Xbest (x) is too large");
+  //   }
 
-    // boundary check Y
-    if(Xbest.at(k+1)>map_height_){
-      Xbest.at(k+1)=map_height_;
-      ROS_WARN("Xbest (y) is too large");
-    }
+  //   // boundary check Y
+  //   if(Xbest.at(k+1)>map_height_){
+  //     Xbest.at(k+1)=map_height_;
+  //     ROS_WARN("Xbest (y) is too large");
+  //   }
 
-    k+=2;
-  }
+  //   k+=2;
+  // }
 
-  if(collides) ROS_WARN("There is collision in the path found.");
-  else ROS_INFO("No collision found on the path.");
+  // if(collides) ROS_WARN("There is collision in the path found.");
+  // else ROS_INFO("No collision found on the path.");
   // -----------------------------------------------------------------------
 
 

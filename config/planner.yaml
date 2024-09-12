@@ -2,13 +2,15 @@
 
 RRTStarPlanner:
   # rrt star parameters
-  goal_tolerance: 0.2
-  radius: 0.5
-  epsilon: 0.2
+  goal_tolerance: 0.15
+  rewiring_radius: 0.4
+  epsilon: 0.1
   max_num_nodes: 10000
-  min_num_nodes: 1000
   # WOA Parameters
-  sampling_radius: 0.1
-  max_iterations: 1000
-  num_agents: 5
-  spiral_shape: 0.4
+  sampling_radius: 0.15
+  max_iterations: 1800
+  num_agents: 8
+  spiral_shape: 0.9
+
+
+  

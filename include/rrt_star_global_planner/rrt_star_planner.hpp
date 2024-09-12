@@ -119,6 +119,8 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   RandomDoubleGenerator r_rand, p_rand, l_rand;
   RandomIntGenerator rand_index;
   uint16_t agent_size_;
+  float goal_z{0.0};
+  float goal_w{1.0};
 };
 
 }  // namespace rrt_star_global_planner
