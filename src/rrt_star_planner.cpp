@@ -292,7 +292,7 @@ for (int i = 0; i < Ng; ++i) {
   auto start_time = std::chrono::high_resolution_clock::now();
 
   // Random variables
-  float p, r, l, a;
+  float p, r1, r2, l, a, a2;
   float A, C;
   int rand; // random agent index
   float best_cost;
@@ -308,7 +308,7 @@ for (int i = 0; i < Ng; ++i) {
   Xbest = agents[0]->X;
 
   float fitness;
-
+  float spiral_collision_rate=0, circular_collision_rate=0;
   // float circular_rate=0;
   // float spiral_rate=0;
   // float circular_exploration_rate=0;
@@ -341,7 +341,11 @@ for (int i = 0; i < Ng; ++i) {
     // }
 
     // update a
+    // a decreases linearly fron 2 to 0 in Eq. (2.3)
     a=2-2*t/N;
+
+    // a2 linearly dicreases from -1 to -2 to calculate t in Eq. (3.12)
+    a2=-1-t/N;
 
     //---------------
     // Iterate over each agent
@@ -352,10 +356,15 @@ for (int i = 0; i < Ng; ++i) {
       }
       // update the random variables
       p=p_rand.generate();
-      r=r_rand.generate();
+      // r=r_rand.generate();
+      r1=r_rand.generate();
+      r2=r_rand.generate();
       // update A and C
-      C=2*r;
-      A=C*a-a;
+      A=2*a*r1-a;  // Eq. (2.3) in the paper
+      C=2*r2;      // Eq. (2.4) in the paper
+
+      // C=2*r;
+      // A=C*a-a;
       Xi.A=A;
       Xi.C=C;
       if (p<0.5){
@@ -374,6 +383,7 @@ for (int i = 0; i < Ng; ++i) {
           //   ROS_INFO("Xrand %d-th point: (%.4f, %.4f)", k/2+1, search_ag.at(k), search_ag.at(k+1));
           // }
           Xi.circularUpdate(agents[rand]->X); // update Xi using Xrand 
+          if (Xi.collides) circular_collision_rate+=100.0/(N*Ng);
           if (search_ag.n_elem != agent_size_){
             ROS_WARN("Search agent size mismatch");
           }
@@ -382,6 +392,7 @@ for (int i = 0; i < Ng; ++i) {
           // Exploitation
           // circular_exploitation_rate+=100.0/(N*Ng);
           Xi.circularUpdate(Xbest); // update Xi using Xbest 
+          if (Xi.collides) circular_collision_rate+=100.0/(N*Ng);
           // for (int k=0; k<agent_size_; k+=2){
           //   ROS_INFO("Xbest %d-th point: (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
           // }
@@ -394,9 +405,12 @@ for (int i = 0; i < Ng; ++i) {
       else if (p>=0.5){
         // spiral_rate+=100.0/(N*Ng);
         // Spiral Search
-        l=l_rand.generate();
+        // l=l_rand.generate();
+        l=(a2-1)*r_rand.generate()+1;   //  parameters in Eq. (2.5)
+        
         Xi.l=l; // update l
         Xi.spiralUpdate(Xbest);
+        if (Xi.collides) spiral_collision_rate+=100.0/(N*Ng);
         // Xi.circularUpdate(Xbest);
         // for (int k=0; k<agent_size_; k+=2){
         //   ROS_INFO("Xbest %d-th point (spiral): (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
@@ -420,6 +434,8 @@ for (int i = 0; i < Ng; ++i) {
     }
   }
 
+  ROS_INFO("Circular collision rate: %.4f", circular_collision_rate);
+  ROS_INFO("Spiral collision rate: %.4f", spiral_collision_rate);
   // -----------------------------------------------------------------------
   // Collision test
   // bool collides=false;
