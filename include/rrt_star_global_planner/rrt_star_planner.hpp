@@ -116,7 +116,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   int Ng_; // number of agents for WOA
   float b_; // spiral shaping parameter
   // tandom devices for WOA
-  RandomDoubleGenerator r_rand, p_rand, l_rand;
+  RandomDoubleGenerator r_rand, l_rand;
   RandomIntGenerator rand_index;
   uint16_t agent_size_;
   float goal_z{0.0};

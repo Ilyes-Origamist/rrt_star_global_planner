@@ -58,7 +58,10 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
     arma::vec D2 = arma::zeros<arma::vec>(vec_size); 
     // ROS_INFO("Agent Size: %d", vec_size);
     // ROS_INFO("Done initializing");
-
+  // circular_x_large_=0;
+  // circular_y_large_=0;
+  // spiral_x_large_=0;
+  // spiral_y_large_=0;
 }
 
 
@@ -126,6 +129,7 @@ PathAgent::PathAgent(std::list<std::pair<float, float>> &path,
 circular update
 */
 void PathAgent::circularUpdate(arma::vec search_agent) {
+  auto start_time = std::chrono::high_resolution_clock::now();
   arma::vec D=arma::abs(C*search_agent-X);
   // ROS_INFO("A=%.4f", A);
   // ROS_INFO("C=%.4f", C);
@@ -142,7 +146,6 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
   // for(int k=0; k<vec_size; k+=2){
   //   ROS_INFO("Xnew %d-th element is: (%.4f, %.4f)", k/2+1, Xnew.at(k), Xnew.at(k+1));
   // }
-  collides=false;
 
   if (Xnew.has_nan()) {
       ROS_ERROR("Xnew contains NaN values!");
@@ -151,48 +154,31 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
       ROS_ERROR("Xnew contains Inf values!");
   }
 
-  // // update X despite colliding
-  X=Xnew;
-
-  // Collision test
-  // if 1st point collides or obstacle between 1st point and start_point_
-  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
-    collides=true;
-    // ROS_WARN("Start point collides with next point (circular)");
-  }
-  // if last point collides or obstacle between last point and goal point 
-  if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
-    collides=true;
-    // ROS_WARN("Goal point collides with previous point (circular)");
-  }
-
-  // collision check for each new point in Xnew and between its preceeding point 
-  int k=2;
-
-  while (!collides && k<vec_size){
-    if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
-      collides=true;
-      // ROS_WARN("There is collision in Xnew (circular)");
-    }
-    if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
-      collides=true;
-      // ROS_WARN("There is collision in Xnew (circular)");
-    }
-    
+  // boundary check 
+  for (int k=0; k<vec_size; k+=2){
     // boundary check X
     if(Xnew.at(k)>map_width_){
       Xnew.at(k)=map_width_;
-      ROS_WARN("Xnew (x) is too large");
+      // circular_x_large_+=1;
+      // ROS_WARN("Xnew (x) is too large");
     }
-
     // boundary check Y
     if(Xnew.at(k+1)>map_height_){
       Xnew.at(k+1)=map_height_;
-      ROS_WARN("Xnew (y) is too large");
+      // circular_y_large_+=1;
+      // ROS_WARN("Xnew (y) is too large");
     }
-
-    k+=2;
   }
+
+  // // update X despite colliding
+  X=Xnew;
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end_time - start_time;
+  time_circular_update_ += diff.count();
+
+  // Collision test
+  // if 1st point collides or obstacle between 1st point and start_point_
   
   // if new path does not pass by any obstacle
   // if (!collides){
@@ -210,12 +196,11 @@ void PathAgent::circularUpdate(arma::vec search_agent) {
 spiral update
 */
 void PathAgent::spiralUpdate(arma::vec search_agent) {
+  auto start_time = std::chrono::high_resolution_clock::now();
   arma::vec D2=arma::abs(search_agent-X);
   arma::vec Xnew;
   Xnew=search_agent+(std::exp(b*l)*std::cos(2*M_PI*l))*D2;
 
-  
-  collides=false;
   // check for invalid values
   if (Xnew.has_nan()) {
       ROS_ERROR("Xnew contains NaN values!");
@@ -224,47 +209,31 @@ void PathAgent::spiralUpdate(arma::vec search_agent) {
       ROS_ERROR("Xnew contains Inf values!");
   }
 
-  // // update X despite colliding
-  X=Xnew;
-
-  // Collision test
-  // if 1st point collides or obstacle between 1st point and start_point_
-  if (collision_.isThisPointCollides(Xnew.at(0), Xnew.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(Xnew.at(0), Xnew.at(1)))){
-    collides=true;
-    // ROS_WARN("Start point collides with next point (spiral)");
-  }
-  // if last point collides or obstacle between last point and goal point 
-  if (collision_.isThisPointCollides(Xnew.at(vec_size-2), Xnew.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(Xnew.at(vec_size-2), Xnew.at(vec_size-1)))){
-    collides=true;
-    // ROS_WARN("Goal point collides with previous point (spiral)");
-  }
-
-  // collision check for each new point in Xnew and between its preceeding point 
-  int k=2;
-  
-  while (!collides && k<vec_size){
-    if (collision_.isThisPointCollides(Xnew.at(k), Xnew.at(k+1))){
-      collides=true;
-      // ROS_WARN("There is collision in Xnew (spiral)");
-    }
-    if (collision_.isThereObstacleBetween(std::make_pair(Xnew.at(k-2), Xnew.at(k-1)), std::make_pair(Xnew.at(k), Xnew.at(k+1)))){
-      collides=true;
-      // ROS_WARN("There is collision in Xnew (spiral)");
-    }
-    
+  // boundary check 
+  for (int k=0; k<vec_size; k+=2){
     // boundary check X
     if(Xnew.at(k)>map_width_){
       Xnew.at(k)=map_width_;
-      ROS_WARN("Xnew (x) is too large");
+      // spiral_x_large_+=1;
+      // ROS_WARN("Xnew (x) is too large");      
     }
     // boundary check Y
     if(Xnew.at(k+1)>map_height_){
       Xnew.at(k+1)=map_height_;
-      ROS_WARN("Xnew (y) is too large");
+      // spiral_y_large_+=1;
+      // ROS_WARN("Xnew (y) is too large");
     }
-
-    k+=2;
   }
+
+  // // update X despite colliding
+  X=Xnew;
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end_time - start_time;
+  time_spiral_update_ += diff.count();
+
+
+  // Collision test
   
   // if new path does not pass by any obstacle
   // if (!collides){
@@ -313,6 +282,38 @@ uint16_t PathAgent::getID(){
   return id_;
 }
 
+
+/*
+doesPathCollides
+*/
+bool PathAgent::doesPathCollide(){
+  // if 1st point collides or obstacle between 1st point and start_point_
+  if (collision_.isThisPointCollides(X.at(0), X.at(1)) || collision_.isThereObstacleBetween(start_point_, std::make_pair(X.at(0), X.at(1)))){
+    return true;
+    // ROS_WARN("Start point collides with next point (spiral)");
+  }
+  // if last point collides or obstacle between last point and goal point 
+  if (collision_.isThisPointCollides(X.at(vec_size-2), X.at(vec_size-1)) || collision_.isThereObstacleBetween(goal_point_, std::make_pair(X.at(vec_size-2), X.at(vec_size-1)))){
+    return true;
+    // ROS_WARN("Goal point collides with previous point (spiral)");
+  }
+
+  // collision check for each new point in Xnew and between its preceeding point 
+  int k=2;
+  
+  while (k<vec_size){
+    if (collision_.isThisPointCollides(X.at(k), X.at(k+1))){
+      return true;
+      // ROS_WARN("There is collision in Xnew (spiral)");
+    }
+    if (collision_.isThereObstacleBetween(std::make_pair(X.at(k-2), X.at(k-1)), std::make_pair(X.at(k), X.at(k+1)))){
+      return true;
+      // ROS_WARN("There is collision in Xnew (spiral)");
+    }
+    k+=2;
+  }
+  return false;
+}
 
 
 /*

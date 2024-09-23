@@ -58,7 +58,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
   Node node_nearest;
 
   bool found_next;
-
+  float tries_avg=0.0;
   auto start_time = std::chrono::high_resolution_clock::now();
 
   // main loop
@@ -75,6 +75,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
         found_next = true;
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
       }
+      tries_avg+=1.0;
     }
     // after p_new is generated, check if it is within goal's vicinity
     goal_reached_=isGoalReached(p_new);
@@ -85,10 +86,11 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
     goal_node_ = nodes_.back();
     ROS_INFO("Initial Path found!");
     ROS_INFO("Number of nodes: %ld", nodes_.size());
+    ROS_INFO("Tries average: %4f", tries_avg/nodes_.size());
     computeFinalPath(path);
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end_time - start_time;
-    ROS_INFO("Time taken to find initial path: %f seconds", diff.count());
+    ROS_INFO("---> Time taken to find initial path: %f seconds", diff.count());
     return true;
   }
   // max number of nodes reached
@@ -160,7 +162,6 @@ std::pair<float, float> RRTStar::sampleFree() {
   std::pair<float, float> random_point;
   random_point.first = random_double_.generate();
   random_point.second = random_double_.generate();
-
   return random_point;
 }
 
@@ -188,11 +189,18 @@ getNearestNodeId
 int RRTStar::getNearestNodeId(const std::pair<float, float> &point) {
   float dist_nearest, dist;
   Node node_nearest = nodes_[0];
+  // brute force is actually slow
+  // it'd be better using kd nearest neighbor search
+
+  // auto start_time = std::chrono::high_resolution_clock::now();
   for (int i = 1; i < nodes_.size(); ++i) {
     dist_nearest = euclideanDistance2D(node_nearest.x, node_nearest.y, point.first, point.second);
     dist = euclideanDistance2D(nodes_[i].x, nodes_[i].y, point.first, point.second);
     if (dist < dist_nearest) node_nearest = nodes_[i];
   }
+  // auto end_time = std::chrono::high_resolution_clock::now();
+  // std::chrono::duration<double> diff = end_time - start_time;
+  // time_nearest_neighbor_ += diff.count();
 
   return node_nearest.node_id;
 }

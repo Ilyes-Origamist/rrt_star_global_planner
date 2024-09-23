@@ -48,8 +48,10 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
 
   float dist = euclideanDistance2D(node.x, node.y, point.first, point.second);
   // ROS_INFO("Distance: %.4f", dist);
+  
+  float cd_resolution=resolution_*2.0; // resolution for collision test
 
-  if (dist < resolution_) {
+  if (dist < cd_resolution) {
     // ROS_INFO("Distance is less than resolution");
     return (isThisPointCollides(point.first, point.second)) ? true : false;
   } 
@@ -60,16 +62,16 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
       return true;
     }
     // compute step number
-    int steps_number = static_cast<int>(floor(dist/(resolution_))+1);
+    int steps_number = static_cast<int>(floor(dist/(cd_resolution)));
     // ROS_INFO("Steps number: %d", steps_number);
 
     float theta = atan2(-node.y + point.second, -node.x + point.first);
     // ROS_INFO("Theta: %.4f", theta);
 
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number*2; n++) {
-      p_n.first = node.x + n*resolution_*cos(theta)/2.0;
-      p_n.second = node.y + n*resolution_*sin(theta)/2.0;
+    for (int n = 1; n < steps_number; n++) {
+      p_n.first = node.x + n*cd_resolution*cos(theta);
+      p_n.second = node.y + n*cd_resolution*sin(theta);
       // ROS_INFO("Checking point (%.4f, %.4f)", p_n.first, p_n.second);
 
       if (isThisPointCollides(p_n.first, p_n.second)) {
@@ -89,8 +91,10 @@ bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &
     return false;
   }
 
+  float cd_resolution=resolution_*2.0; // resolution for collision test
+  
   float dist = euclideanDistance2D(point1.first, point1.second, point2.first, point2.second);
-  if (dist < resolution_) {
+  if (dist < cd_resolution) {
     return (isThisPointCollides(point2.first, point2.second)) ? true : false;
   } 
   else {
@@ -100,12 +104,12 @@ bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &
       return true;
     }
     // compute step number
-    int steps_number = static_cast<int>(floor(dist/(resolution_)+1));
+    int steps_number = static_cast<int>(floor(dist/(cd_resolution)));
     float theta = atan2(-point1.second + point2.second, -point1.first + point2.first);
     std::pair<float, float> p_n;
-    for (int n = 0; n < steps_number*2; n++) {
-      p_n.first = point1.first + n*resolution_*cos(theta)/2.0;
-      p_n.second = point1.second + n*resolution_*sin(theta)/2.0;
+    for (int n = 1; n < steps_number; n++) {
+      p_n.first = point1.first + n*cd_resolution*cos(theta);
+      p_n.second = point1.second + n*cd_resolution*sin(theta);
       if (isThisPointCollides(p_n.first, p_n.second))
         return true;
     }
