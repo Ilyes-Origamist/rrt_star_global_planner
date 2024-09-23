@@ -81,10 +81,10 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     }
 
     // initialize random objects (random devices)
-    p_rand.setRange(0,1);
+    // p_rand.setRange(0,1);
     r_rand.setRange(0,1);
     l_rand.setRange(-1,1);
-    // rand_index.setRange(0,Ng_-1);
+    rand_index.setRange(0,Ng_-1);
 
     ROS_INFO("RRT* Global Planner initialized successfully.");
     ROS_INFO("Map dimensions: %f m, %f m", map_width_, map_height_);
@@ -147,6 +147,8 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
 
   if (planner_->initialPath(path)) {
     computeInitialPlan(plan, path);
+    // double time_NN=planner_->time_nearest_neighbour_;
+    // ROS_INFO("---> Total time taken by getNearestNodeId: %f seconds", time_NN);
     // -------------------------------
     // Test Agent
     // -------------------------------
@@ -166,11 +168,18 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     //     WOA  Path  Optimization
     // -------------------------------
   
-    ROS_INFO("Proceeding to path optimization with WOA");
+    ROS_INFO("Proceeding to path optimization with WOA for %d iterations", N_);
     if (path.size()>2){
-      woaOptimizePath(path, N_, Ng_, b_);
-      computeFinalPlan(plan, path);
-      ROS_INFO("WOA Executed successfully. New path is published.");
+      // multiple tests version
+      for (int i=Ng_; i<11*Ng_; i+=10){
+        woaOptimizePath(path, N_, i, b_);
+        computeFinalPlan(plan, path);
+        // ROS_INFO("WOA Executed successfully. New path is published.");
+        ROS_INFO("WOA Executed successfully for %d agents.", i);
+      }
+      // single test version
+      // woaOptimizePath(path, N_, Ng_, b_);
+      // computeFinalPlan(plan, path);
     }
     else {
       ROS_INFO("Path contains only two points. No WOA optimization.");
@@ -271,7 +280,9 @@ void RRTStarPlanner::woaOptimizePath(std::list<std::pair<float, float>> &path, i
   // initialize each agent
   // ROS_INFO("Creating Agent objects");
   std::vector<geometry_msgs::PoseStamped> plan;
-  ROS_INFO("Initializing whales population");
+  // ROS_INFO("Initializing whales population");
+  auto start_time = std::chrono::high_resolution_clock::now();
+
 for (int i = 0; i < Ng; ++i) {
     agents.emplace_back(std::make_unique<PathAgent>(initial_path, sampling_radius_, i, costmap_, spiral_shape));
     // ROS_INFO("Created agent %d", i);
@@ -281,21 +292,22 @@ for (int i = 0; i < Ng; ++i) {
     //---------------------------
     // display random initial path for each
     // --------------------------
-    computeFinalPlan(plan, agents[i]->initial_path_);
-    ROS_INFO("Displaying %d-th agent's initial path.", i+1);
-    ros::Duration(0.25).sleep(); 
+    // computeFinalPlan(plan, agents[i]->initial_path_);
+    // ROS_INFO("Displaying %d-th agent's initial path.", i+1);
+    // ros::Duration(0.25).sleep(); 
   }
   ROS_INFO("Created %ld agents", agents.size());
-  ROS_INFO("Initialized WOA successfully");
+  // ROS_INFO("Initialized WOA successfully");
 
   // start counting time
-  auto start_time = std::chrono::high_resolution_clock::now();
-
   // Random variables
   float p, r, l, a;
   float A, C;
   int rand; // random agent index
   float best_cost;
+  // initialize Xbest with RRT* initial path
+  arma::vec Xbest ;
+  Xbest = agents[0]->X;
   // initialize best cost
   best_cost = agents[0]->fitness();
   // ROS_INFO("Initial best cost %.6f", best_cost);
@@ -304,11 +316,9 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Agent size: %d", agent_size_);
   // arma::vec Xbest; // best agent  
   // Xbest.set_size(agent_size_);
-  arma::vec Xbest ;
-  Xbest = agents[0]->X;
+
 
   float fitness;
-
   // float circular_rate=0;
   // float spiral_rate=0;
   // float circular_exploration_rate=0;
@@ -320,16 +330,18 @@ for (int i = 0; i < Ng; ++i) {
     // ROS_INFO("Iteration number %d", t);
     //---------------
     // Update Xbest
-    for (size_t i = 0; i < agents.size(); ++i) {
+    for (size_t i = 0; i < Ng; ++i) {
       // Access the i-th object
       fitness=agents[i]->fitness(); // cost(Xi)
       // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
       // !(agents[i]->collides)
-      if (fitness < best_cost && !(agents[i]->collides)){
+      if (fitness < best_cost){
         // update Xbest if there is a better solution that does not collide
-        Xbest=agents[i]->X;
-        best_cost=fitness;
-        // ROS_INFO("Current Best cost (iteration %d): %.6f", t, best_cost);
+        if (!agents[i]->doesPathCollide()){
+          Xbest=agents[i]->X;
+          best_cost=fitness;
+          // ROS_INFO("Current Best cost (iteration %d): %.6f", t, best_cost);
+        }
       }
     }
     // display Xbest
@@ -339,7 +351,7 @@ for (int i = 0; i < Ng; ++i) {
     //   }
     //   ROS_INFO("-----Best Cost: %.4f", best_cost);
     // }
-
+ 
     // update a
     a=2-2*t/N;
 
@@ -351,13 +363,14 @@ for (int i = 0; i < Ng; ++i) {
         ROS_WARN("Null pointer on agent %d",i);
       }
       // update the random variables
-      p=p_rand.generate();
+      p=r_rand.generate();
       r=r_rand.generate();
       // update A and C
       C=2*r;
       A=C*a-a;
       Xi.A=A;
       Xi.C=C;
+      
       if (p<0.5){
         // circular_rate+=100.0/(N*Ng);
         // Circular Search
@@ -365,18 +378,20 @@ for (int i = 0; i < Ng; ++i) {
           // Exploration
           // circular_exploration_rate+=100.0/(N*Ng);
           rand=rand_index.generateInt(); // random index
+          // ROS_INFO("Rand index: %d",rand);
           // valid pointer check
-          if (agents[rand]==nullptr){
-            ROS_WARN("Null pointer on the random agent");
-          }
+          // if (agents[rand]==nullptr){
+          //   ROS_WARN("Null pointer on the random agent");
+          // }
           arma::vec search_ag = agents[rand]->X;
           // for (int k=0; k<agent_size_; k+=2){
           //   ROS_INFO("Xrand %d-th point: (%.4f, %.4f)", k/2+1, search_ag.at(k), search_ag.at(k+1));
           // }
           Xi.circularUpdate(agents[rand]->X); // update Xi using Xrand 
-          if (search_ag.n_elem != agent_size_){
-            ROS_WARN("Search agent size mismatch");
-          }
+
+          // if (search_ag.n_elem != agent_size_){
+          //   ROS_WARN("Search agent size mismatch");
+          // }
         }
         else{
           // Exploitation
@@ -385,9 +400,9 @@ for (int i = 0; i < Ng; ++i) {
           // for (int k=0; k<agent_size_; k+=2){
           //   ROS_INFO("Xbest %d-th point: (%.4f, %.4f)", k/2+1, Xbest.at(k), Xbest.at(k+1));
           // }
-          if (Xbest.n_elem != agent_size_){
-            ROS_WARN("Best agent size mismatch");
-          }
+          // if (Xbest.n_elem != agent_size_){
+          //   ROS_WARN("Best agent size mismatch");
+          // }
         }
       }
 
@@ -405,19 +420,33 @@ for (int i = 0; i < Ng; ++i) {
     }
 
   }
-
+  // float circular_x_large=0.0, circular_y_large=0.0, spiral_x_large=0.0, spiral_y_large=0.0;
   // Update Xbest after the end
-  for (size_t i = 0; i < agents.size(); ++i) {
+  // float total_time_circular_update_=0;
+  // float total_time_spiral_update_=0;
+  
+  for (size_t i = 0; i < Ng; ++i) {
+    // large values rates
+    // to check how often do points go far 
+    // circular_x_large += static_cast<float>(agents[i]->circular_x_large_) / static_cast<float>(agent_size_*Ng);
+    // circular_y_large+=static_cast<float>(agents[i]->circular_y_large_)/static_cast<float>(agent_size_*Ng);
+    // spiral_x_large+=static_cast<float>(agents[i]->spiral_x_large_)/static_cast<float>(agent_size_*Ng);
+    // spiral_y_large+=static_cast<float>(agents[i]->spiral_y_large_)/static_cast<float>(agent_size_*Ng);
+
     // Access the i-th object
     fitness=agents[i]->fitness(); // cost(Xi)
     // if (agents[i]->collides) ROS_WARN("Agent %d Actually collides", i);
     // ROS_INFO("Cost of %ld-th agent: %lf", i, fitness);
-    if (fitness < best_cost && !(agents[i]->collides)){
+    if (fitness < best_cost){
       // update Xbest if there is a better solution that does not collide
-      Xbest=agents[i]->X;
-      best_cost=fitness;
-      // ROS_INFO("Best cost: %.4f", best_cost);
+      if (!agents[i]->doesPathCollide()){
+        Xbest=agents[i]->X;
+        best_cost=fitness;
+        // ROS_INFO("Current Best cost (iteration %d): %.6f", t, best_cost);
+      }
     }
+    // total_time_circular_update_+=agents[i]->time_circular_update_;
+    // total_time_spiral_update_+=agents[i]->time_spiral_update_;
   }
 
   // -----------------------------------------------------------------------
@@ -480,15 +509,21 @@ for (int i = 0; i < Ng; ++i) {
   // ROS_INFO("Path Length after WOA: %ld", path.size());
   ROS_INFO("Path Cost after WOA Optimization: %.4f", best_cost);
 
-  // ROS_INFO("Xbest size %d", agent_size_);
+  // ROS_INFO("Circular X large occurance average: %.2f", circular_x_large);
+  // ROS_INFO("Circular Y large occurance average: %.2f", circular_y_large);
+  // ROS_INFO("Spiral X large occurance average: %.2f", spiral_x_large);
+  // ROS_INFO("Spiral Y large occurance average: %.2f", spiral_y_large);
+  // ROS_INFO("Total large values occurance relative to number of iterations: %.4f",(circular_x_large+circular_y_large+spiral_x_large+spiral_y_large)*100/N);
+  // // ROS_INFO("Xbest size %d", agent_size_);
 
   // for(int i=0; i<agent_size_; i+=2){
   //   ROS_INFO("Best agent %d-th point: (%.4f, %.4f)", i/2+1, Xbest.at(i), Xbest.at(i+1));
   // }
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff = end_time - start_time;
-  ROS_INFO("Time taken to optimize path with WOA: %f seconds", diff.count());
-  
+  ROS_INFO("---> Time taken to optimize path with WOA: %f seconds", diff.count());
+  // ROS_INFO("---> Time taken by CIRCULAR UPDATE: %.4f seconds", total_time_circular_update_);
+  // ROS_INFO("---> Time taken by SPIRAL UPDATE: %.4f seconds", total_time_spiral_update_);
 }
 
 

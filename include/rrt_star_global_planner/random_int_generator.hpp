@@ -6,7 +6,7 @@
 #define RRT_STAR_GLOBAL_PLANNER_RANDOM_INT_GENERATOR_HPP_
 
 #include <random>
-#include <cfloat>  // DBL_MAX
+#include <climits>  // INT_MAX
 
 namespace rrt_star_global_planner {
 
@@ -15,11 +15,12 @@ namespace rrt_star_global_planner {
 class RandomIntGenerator {
  private:
   std::random_device rd_;
+  std::mt19937 gen;
   int min_value_{0};
   int max_value_{1};
 
  public:
-  RandomIntGenerator() = default;
+  RandomIntGenerator();
 
   void setRange(int min, int max);
   int generateInt();
