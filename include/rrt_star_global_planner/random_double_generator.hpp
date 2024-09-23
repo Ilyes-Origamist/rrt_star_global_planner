@@ -15,11 +15,12 @@ namespace rrt_star_global_planner {
 class RandomDoubleGenerator {
  private:
   std::random_device rd_;
+  std::mt19937 gen;        // Mersenne Twister engine (keep alive between calls)
   double min_value_{-1.0};
   double max_value_{1.0};
 
  public:
-  RandomDoubleGenerator() = default;
+  RandomDoubleGenerator();
 
   void setRange(double min, double max);
   double generate();
