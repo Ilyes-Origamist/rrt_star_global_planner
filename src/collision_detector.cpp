@@ -49,7 +49,7 @@ bool CollisionDetector::isThereObstacleBetween(const Node &node, const std::pair
   float dist = euclideanDistance2D(node.x, node.y, point.first, point.second);
   // ROS_INFO("Distance: %.4f", dist);
   
-  float cd_resolution=resolution_*2.0; // resolution for collision test
+  float cd_resolution=resolution_; // resolution for collision test
 
   if (dist < cd_resolution) {
     // ROS_INFO("Distance is less than resolution");
@@ -91,7 +91,7 @@ bool CollisionDetector::isThereObstacleBetween(const std::pair<double, double> &
     return false;
   }
 
-  float cd_resolution=resolution_*2.0; // resolution for collision test
+  float cd_resolution=resolution_; // resolution for collision test
   
   float dist = euclideanDistance2D(point1.first, point1.second, point2.first, point2.second);
   if (dist < cd_resolution) {
