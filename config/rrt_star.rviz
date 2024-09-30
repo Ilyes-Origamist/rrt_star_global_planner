@@ -7,8 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /Global Path1
-        - /Initial Path1
         - /LocalPath1
       Splitter Ratio: 0.5117647051811218
     Tree Height: 726
@@ -363,7 +361,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.322875022888184
+      Distance: 7.4968132972717285
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -371,9 +369,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.085982084274292
-        Y: -0.5349318385124207
-        Z: 0.5066291689872742
+        X: 0.9268251657485962
+        Y: -1.5743318796157837
+        Z: 0.5047768950462341
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
