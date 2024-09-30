@@ -171,15 +171,15 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     ROS_INFO("Proceeding to path optimization with WOA for %d iterations", N_);
     if (path.size()>2){
       // multiple tests version
-      for (int i=Ng_; i<11*Ng_; i+=10){
-        woaOptimizePath(path, N_, i, b_);
-        computeFinalPlan(plan, path);
-        // ROS_INFO("WOA Executed successfully. New path is published.");
-        ROS_INFO("WOA Executed successfully for %d agents.", i);
-      }
+      // for (int i=Ng_; i<11*Ng_; i+=10){
+      //   woaOptimizePath(path, N_, i, b_);
+      //   computeFinalPlan(plan, path);
+      //   // ROS_INFO("WOA Executed successfully. New path is published.");
+      //   ROS_INFO("WOA Executed successfully for %d agents.", i);
+      // }
       // single test version
-      // woaOptimizePath(path, N_, Ng_, b_);
-      // computeFinalPlan(plan, path);
+      woaOptimizePath(path, N_, Ng_, b_);
+      computeFinalPlan(plan, path);
     }
     else {
       ROS_INFO("Path contains only two points. No WOA optimization.");
