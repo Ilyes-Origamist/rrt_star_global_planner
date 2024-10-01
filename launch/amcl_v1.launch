@@ -43,7 +43,7 @@
 
 <!-- Laser arguments -->
 
-    <param name="laser_min_range"           value="0.2"/>
+    <param name="laser_min_range"           value="0.0"/>
     <param name="laser_max_range"           value="12.0"/>
     <param name="laser_max_beams"           value="30"/> <!-- defaul 180 -->
     <param name="laser_z_hit"               value="0.7"/> <!-- defaul 0.95 -->
