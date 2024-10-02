@@ -86,7 +86,7 @@ TrajectoryPlannerROS:
   meter_scoring: false #Whether the gdist_scale and pdist_scale parameters should assume that goal_distance and path_distance are expressed in units of meters or cells. Cells are assumed by default. New in navigation 1.3.1 
   path_distance_bias: 4.5    #The weighting for how much the controller should stay close to the path it was given, maximal possible value is 5.0 
   goal_distance_bias: 2.25    #The weighting for how much the controller should attempt to reach its local goal, also controls speed, maximal possible value is 5.0 
-  occdist_scale: 0.8 #The weighting for how much the controller should attempt to avoid obstacles 
+  occdist_scale: 1.2 #The weighting for how much the controller should attempt to avoid obstacles 
   heading_lookahead: 2.0 #How far to look ahead in meters when scoring different in-place-rotation trajectories 
   heading_scoring: false #Whether to score based on the robot's heading to the path or its distance from the path 
   heading_scoring_timestep: 0.8 #How far to look ahead in time in seconds along the simulated trajectory when using heading scoring 
