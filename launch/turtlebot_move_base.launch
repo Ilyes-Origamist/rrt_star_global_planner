@@ -6,9 +6,9 @@
   <!-- <arg name="base_global_planner" default="navfn/NavfnROS"/> -->
   
   <!-- Local Planner -->
-  <!-- <arg name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/> -->
+  <arg name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
   <!-- <arg name="base_local_planner" default="dwa_local_planner/DWAPlannerROS"/> -->
-  <arg name="base_local_planner" default="teb_local_planner/TebLocalPlannerROS"/>
+  <!-- <arg name="base_local_planner" default="teb_local_planner/TebLocalPlannerROS"/> -->
  
   
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
@@ -23,9 +23,10 @@
     <rosparam file="$(find rrt_star_global_planner)/config/turtlebot_global_costmap.yaml" command="load" ns="global_costmap" /> 
 
 
-    <rosparam file="$(find rrt_star_global_planner)/config/teb_local_planner.yaml" command="load"/>
-    <rosparam file="$(find rrt_star_global_planner)/config/planner_sim.yaml" command="load"/>
-    <!-- <rosparam file="$(find rrt_star_global_planner)/config/dwa_local_planner_test.yaml" command="load"/> -->
+    <rosparam file="$(find rrt_star_global_planner)/config/turtlebot_teb_local_planner_default.yaml" command="load"/>
+    <rosparam file="$(find rrt_star_global_planner)/config/turtlebot_base_local_planner.yaml" command="load"/>
+    <rosparam file="$(find rrt_star_global_planner)/config/turtlebot_dwa_local_planner.yaml" command="load"/>
+    <rosparam file="$(find rrt_star_global_planner)/config/turtlebot_global_planner.yaml" command="load"/>
 
   </node>
 

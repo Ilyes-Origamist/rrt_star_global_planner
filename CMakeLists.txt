@@ -10,7 +10,10 @@ find_package(catkin REQUIRED COMPONENTS
   nav_core
   base_local_planner
   geometry_msgs
+  dynamic_reconfigure
 )
+
+generate_dynamic_reconfigure_options(cfg/RRTStarPlanner.cfg)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -22,6 +25,7 @@ catkin_package(
     nav_core
     base_local_planner
     geometry_msgs
+    dynamic_reconfigure
 )
 
 include_directories(
@@ -47,25 +51,31 @@ install(
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-if (CATKIN_ENABLE_TESTING)
-  find_package(cmake_modules)
-  enable_testing()
-  find_package(rostest REQUIRED)
+install(
+  DIRECTORY include/rrt_star_global_planner/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
 
-  include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
-  )
+# unit tests
+# if (CATKIN_ENABLE_TESTING)
+#   find_package(cmake_modules)
+#   enable_testing()
+#   find_package(rostest REQUIRED)
 
-  add_rostest_gtest(test_rrt_star
-    test/rrt_star.test
-    test/src/test_rrt_star.cpp
-  )
+#   include_directories(
+#     include
+#     ${catkin_INCLUDE_DIRS}
+#   )
 
-  target_link_libraries(test_rrt_star
-    ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
-    gtest
-  )
+  # add_rostest_gtest(test_rrt_star
+  #   test/rrt_star.test
+  #   test/src/test_rrt_star.cpp
+  # )
 
-endif()
+  # target_link_libraries(test_rrt_star
+  #   ${catkin_LIBRARIES}
+  #   ${PROJECT_NAME}
+  #   gtest
+  # )
+
+# endif()

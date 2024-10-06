@@ -1,0 +1,37 @@
+<launch>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- <arg name="world_name" value="worlds/willowgarage.world"/>  -->
+    <!-- <arg name="world_name" value="$(find robot_model_pkg)/worlds/warehouse.world"/> -->
+    <arg name="world_name" value="$(find rrt_star_global_planner)/worlds/small_house.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/> <!-- Inert - see gazebo_ros_pkgs issue #491 -->
+    <arg name="recording" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+
+  <!-- <node name="gzserver" pkg="gazebo_ros" type="gzserver" args="-e $(arg world_name)" respawn="true" output="screen"> -->
+    <!-- <param name="wait_for_service_timeout" value="60.0"/> Increase the timeout to 60 seconds -->
+  <!-- </node> -->
+  <!-- <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="true" output="screen"/> -->  
+  
+  <!-- Spawning the robot model in Gazebo -->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro'" /> 
+
+  <!-- Spawn the robot in Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-param robot_description -urdf -model turtlebot3" />  
+
+  <param name="robot_description_gazebo" command="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_burger.gazebo.xacro'" />
+
+  <!-- <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" /> -->
+
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="50.0"/>
+    <param name="publish_tf" type="bool" value="true"/>
+  </node>
+
+</launch>

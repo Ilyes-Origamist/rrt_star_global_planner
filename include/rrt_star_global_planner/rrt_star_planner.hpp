@@ -26,6 +26,8 @@
 #include "rrt_star_global_planner/random_double_generator.hpp"
 #include "rrt_star_global_planner/random_int_generator.hpp"
 
+#include <dynamic_reconfigure/server.h>
+#include <rrt_star_global_planner/RRTStarPlannerConfig.h>
 
 namespace rrt_star_global_planner {
 
@@ -86,6 +88,8 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
 
   void woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape);
 
+  void reconfigureCallback(RRTStarPlannerConfig& config, uint32_t level);
+
   /**
    * @brief Modifies the path given the agent
    * @param agent The agent vector 
@@ -121,8 +125,10 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   uint16_t agent_size_;
   float goal_z{0.0};
   float goal_w{1.0};
-};
-
+  // rqt reconfigure
+  typedef dynamic_reconfigure::Server<rrt_star_global_planner::RRTStarPlannerConfig> drs;
+  // dynamic reconfigure server ptr
+  boost::shared_ptr<drs> dr_server_;};
 }  // namespace rrt_star_global_planner
 
 #endif  // RRT_STAR_GLOBAL_PLANNER_RRT_STAR_PLANNER_HPP_  // NOLINT

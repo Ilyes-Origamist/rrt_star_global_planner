@@ -1,9 +1,0 @@
-<launch>
-
-    <!-- launching the node "sequ_of_goals.py" with namespace -->
-    <node name="goal_sequence" pkg="navigation_pkg" type="sequ_of_goals.py" ns="move_base_seq" output="screen" >
-        <param name="p_seq" value="[x1, y1, x2, y2, x3, y3, ...]" />
-        <param name="yea_seq" value="[yaw1, yaw2, yaw3, ...]" />
-    </node>
-
-</launch>

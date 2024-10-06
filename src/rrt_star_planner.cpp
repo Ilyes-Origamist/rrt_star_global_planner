@@ -57,20 +57,25 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     // initialize path publisher
     path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/global_plan", 1, true);
     initial_path_pub_ = private_nh.advertise<nav_msgs::Path>("/move_base/RRTStarPlanner/initial_plan", 1, true);
-    // RRT Star Parameters
-    private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
-    private_nh.param("rewiring_radius", radius_, 0.5);
-    private_nh.param("epsilon", epsilon_, 0.1);
-    private_nh.param("max_num_nodes", max_num_nodes_, 5000);
-    private_nh.param("min_num_nodes", min_num_nodes_, 500);
-    
-    // WOA parameters
-    // sampling_radius_: to generate random initial paths (initialize WOA)
-    private_nh.param("sampling_radius",sampling_radius_ , 0.1); 
-    private_nh.param("max_iterations", N_, 250);
-    private_nh.param("num_agents", Ng_, 10);
-    private_nh.param("spiral_shape", b_, 0.5f);
 
+    // // RRT Star Parameters
+    // private_nh.param("goal_tolerance", goal_tolerance_, 0.2);
+    // private_nh.param("rewiring_radius", radius_, 0.5);
+    // private_nh.param("epsilon", epsilon_, 0.1);
+    // private_nh.param("max_num_nodes", max_num_nodes_, 5000);
+    
+    // // WOA parameters
+    // // sampling_radius_: to generate random initial paths (initialize WOA)
+    // private_nh.param("sampling_radius",sampling_radius_ , 0.1); 
+    // private_nh.param("num_iterations", N_, 250);
+    // private_nh.param("num_agents", Ng_, 10);
+    // private_nh.param("spiral_shape", b_, 0.5f);
+
+    // Dynamic reconfigure
+    dr_server_.reset(new drs(private_nh));
+    drs::CallbackType f = boost::bind(&RRTStarPlanner::reconfigureCallback, this, _1, _2);
+    dr_server_->setCallback(f);
+  
     // TODO(Rafael) remove hard coding
     if (search_specific_area_) {
       map_width_ = 10.0;
@@ -93,6 +98,22 @@ void RRTStarPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap
     ROS_WARN("This planner has already been initialized... doing nothing.");
   }
 }
+
+void RRTStarPlanner::reconfigureCallback(RRTStarPlannerConfig& config, uint32_t level){
+  // RRT* parameters
+  goal_tolerance_=config.goal_tolerance;
+  radius_=config.rewiring_radius;
+  epsilon_=config.epsilon;
+  max_num_nodes_=config.max_num_nodes;
+  // WOA parameters
+  sampling_radius_=config.sampling_radius;
+  N_=config.num_iterations;
+  Ng_=config.num_agents;
+  b_=config.spiral_shape;
+  // Logs
+  // ROS_INFO("Dynamic Reconfigure: Parameters updated!");
+  }
+
 
 // ---------------------------------
 //     makePlan Function

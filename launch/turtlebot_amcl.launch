@@ -1,7 +1,7 @@
 
 <launch>
   <!-- Map Server Arguments -->
-  <arg name="map_file" default="$(find slam_pkg)/maps/gazebo/small_house.yaml"/>
+  <arg name="map_file" default="$(find rrt_star_global_planner)/maps/gazebo/small_house.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <!-- Arguments -->
