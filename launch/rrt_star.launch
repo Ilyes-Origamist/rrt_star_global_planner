@@ -8,7 +8,7 @@
   <include file="$(find controller)/launch/controller.launch" />
 
   <!-- launch amcl -->
-  <include file="$(find rrt_star_global_planner)/launch/amcl_v1.launch" />
+  <include file="$(find rrt_star_global_planner)/launch/amcl_v2.launch" />
 
   <!-- launch move base -->
   <include file="$(find rrt_star_global_planner)/launch/move_base.launch" />

@@ -1,6 +1,6 @@
 
-obstacle_range: 3.0
-raytrace_range: 3.5
+obstacle_range: 5.0
+raytrace_range: 6.0
 
 resolution: 0.05
 
@@ -9,6 +9,6 @@ footprint: [[-0.075, 0.17], [0.01, 0.17], [0.067, 0.16], [0.117, 0.126], [0.145,
 footprint_padding: 0.01
 
 robot_base_frame: base_link
-update_frequency: 5.0
-publish_frequency: 0.5
+update_frequency: 10.0
+publish_frequency: 8.0
 transform_tolerance: 0.5
