@@ -38,11 +38,20 @@ class RRTStar {
   bool max_nodes_reached{false};
   int node_count_{0};
   /**
-   * @brief compute the RRT* path planning
+   * @brief compute the RRT* initial path only
    * @param path list of planar positions (x, y)
    * @return true if a path is found, false otherwise
    */
   bool initialPath(std::list<std::pair<float, float>> &path);  // NOLINT
+
+
+  /**
+   * @brief refines the RRT* initial path once generated
+   * @param path list of planar positions (x, y)
+   * @return true if a path is found, false otherwise
+   */
+  bool refinePath(std::list<std::pair<float, float>> &path);
+
 
   /**
    * @brief optimizes the initial path using biased sampling

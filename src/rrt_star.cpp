@@ -58,7 +58,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
   Node node_nearest;
 
   bool found_next;
-  float tries_avg=0.0;
+  // float tries_avg=0.0;
   auto start_time = std::chrono::high_resolution_clock::now();
 
   // main loop
@@ -75,7 +75,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
         found_next = true;
         createNewNode(p_new.first, p_new.second, node_nearest.node_id);
       }
-      tries_avg+=1.0;
+      // tries_avg+=1.0;
     }
     // after p_new is generated, check if it is within goal's vicinity
     goal_reached_=isGoalReached(p_new);
@@ -86,7 +86,7 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
     goal_node_ = nodes_.back();
     ROS_INFO("Initial Path found!");
     ROS_INFO("Number of nodes: %ld", nodes_.size());
-    ROS_INFO("Tries average: %4f", tries_avg/nodes_.size());
+    // ROS_INFO("Tries average: %4f", tries_avg/nodes_.size());
     computeFinalPath(path);
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = end_time - start_time;
@@ -102,6 +102,53 @@ bool RRTStar::initialPath(std::list<std::pair<float, float>> &path) {
 }
 
 
+
+bool RRTStar::refinePath(std::list<std::pair<float, float>> &path) {
+
+  if (cd_.isThisPointCollides(goal_point_.first, goal_point_.second)) {
+    ROS_ERROR("Goal point chosen is NOT in the FREE SPACE! Choose other goal!");
+    return false;
+  }
+
+  std::pair<float, float> p_rand;
+  std::pair<float, float> p_new;
+
+  Node node_nearest;
+
+  bool found_next;
+  // float tries_avg=0.0;
+  auto start_time = std::chrono::high_resolution_clock::now();
+  if (nodes_.size() > min_num_nodes_) {
+    ROS_INFO("Minimum number of nodes exceeded. Path will not be refined.");
+    return false;
+  }
+  // main loop
+  while (nodes_.size() < min_num_nodes_) {
+    found_next = false;
+
+    while (!found_next) {
+      /* continue generating a random point until it is possible 
+      without any collision */
+      p_rand = sampleFree();  // random point in the free space
+      node_nearest = nodes_[getNearestNodeId(p_rand)];  // nearest node of the random point
+      p_new = steer(node_nearest.x, node_nearest.y, p_rand.first, p_rand.second);  // new point and node candidate
+      if (!cd_.isThereObstacleBetween(node_nearest, p_new) && !cd_.isThisPointCollides(p_new.first, p_new.second)) {
+        found_next = true;
+        createNewNode(p_new.first, p_new.second, node_nearest.node_id);
+      }
+      // tries_avg+=1.0;
+    }
+    // after p_new is generated, check if it is within goal's vicinity
+    // goal_reached_=isGoalReached(p_new);
+  }
+  ROS_INFO("RRT* Path Refined.");
+  // ROS_INFO("Refined Path Cost: %.4f", goal_node_.cost);
+  computeFinalPath(path);
+  return true;
+  }
+
+
+
 /*
 optimizing initial path
 */
@@ -113,16 +160,16 @@ void RRTStar::optimizePath(std::list<std::pair<float, float>> &path) {
   Node node_nearest;
 
   bool found_next=false;
-  int num_travels_=0;
+  // int num_travels_=0;
   auto it = path.begin();  // Iterator to traverse the list
   // main loop
   while (nodes_.size() < max_num_nodes_) {
     // if travelled all the path (except goal node)
     if (it == std::prev(path.end())) {
       it = path.begin();
-      num_travels_++;
+      // num_travels_++;
       computeFinalPath(path);
-      ROS_INFO("Traveled the path for %d time", num_travels_);
+      // ROS_INFO("Traveled the path for %d time", num_travels_);
     }
     else {
       found_next = false; // Reset found_next before the inner loop
@@ -319,42 +366,50 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
 
   // Compute the path from the goal to the start
   Node current_node = goal_node_;
-
+  double path_cost=0;
   // Final Path
   std::pair<float, float> point;
+  std::pair<float, float> prev_point=std::make_pair(goal_node_.x, goal_node_.y);
 
   do {
     point.first = current_node.x;
     point.second = current_node.y;
     path.push_front(point);
+    path_cost+=euclideanDistance2D(point.first, point.second, prev_point.first, prev_point.second);
     // ROS_INFO("Adding Point in path (%.4f, %.4f)", point.first, point.second);
-    int mx, my;
-    cd_.worldToMap(point.first, point.second, mx, my);
-    unsigned int cost = static_cast<int>(costmap_->getCost(mx, my));
+    // int mx, my;
+    // cd_.worldToMap(point.first, point.second, mx, my);
+    // unsigned int cost = static_cast<int>(costmap_->getCost(mx, my));
     // ROS_INFO("Point Cost: %d", cost);
 
     // check if node id is valid
-    if (current_node.parent_id < 0 || current_node.parent_id >= nodes_.size()) {
-      ROS_ERROR("Invalid parent_id: %d", current_node.parent_id);
-      break;
-    }
+    // if (current_node.parent_id < 0 || current_node.parent_id >= nodes_.size()) {
+    //   ROS_ERROR("Invalid parent_id: %d", current_node.parent_id);
+    //   break;
+    // }
 
     // update the current node
+    prev_point = point;
     current_node = nodes_[current_node.parent_id];
-    bool no_obstacle = !cd_.isThereObstacleBetween(current_node, point);
-    if (no_obstacle){
-      // ROS_INFO("No obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
-    }
-    else{
-      // ROS_INFO("There is obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
-    }
+
+    // bool no_obstacle = !cd_.isThereObstacleBetween(current_node, point);
+    // if (no_obstacle){
+    //   // ROS_INFO("No obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
+    // }
+    // else{
+    //   // ROS_INFO("There is obstacle between (%.4f, %.4f) and (%.4f, %.4f)",point.first, point.second, current_node.x, current_node.y);
+    // }
     
   } while (current_node.parent_id != -1);
   point.first = current_node.x;
-  point.second = current_node.y;  
+  point.second = current_node.y; 
   path.push_front(point);
-  
-  ROS_INFO("Path cost: %f", goal_node_.cost);
+  path_cost+=euclideanDistance2D(point.first, point.second, prev_point.first, prev_point.second);  
+  ROS_INFO("Path cost: %f", path_cost);
+
+  // ROS_INFO("Path cost (computeFinalPath): %f", path_cost);
+  // ROS_INFO("Path cost (goal_node): %f", goal_node_.cost);
+
 }
 
 /*

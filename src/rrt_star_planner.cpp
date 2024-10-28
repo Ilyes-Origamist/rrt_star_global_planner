@@ -105,6 +105,8 @@ void RRTStarPlanner::reconfigureCallback(RRTStarPlannerConfig& config, uint32_t 
   radius_=config.rewiring_radius;
   epsilon_=config.epsilon;
   max_num_nodes_=config.max_num_nodes;
+  min_num_nodes_=config.min_num_nodes;
+
   // WOA parameters
   sampling_radius_=config.sampling_radius;
   N_=config.num_iterations;
@@ -149,65 +151,19 @@ bool RRTStarPlanner::makePlan(const geometry_msgs::PoseStamped& start,
   std::list<std::pair<float, float>> path;
   std::list<std::pair<float, float>> rand_path;
 
-  // -------------------------------
-  // Testing collision detector
-  // -------------------------------
-  // ROS_INFO("Testing collision detector");
-  // std::list<std::pair<float,float>> test_path={{0.0,0.0},{3.0,-1.9}};
-  // computeFinalPlan(plan,test_path);
-  // CollisionDetector coll_(costmap_);
-  // bool collision_test=coll_.isThereObstacleBetween(test_path.front(),test_path.back());
-  // if (collision_test==false) ROS_INFO("no collision");
-  // else ROS_WARN("There is collision");
-  // return false;
-
-  // -------------------------------
-  //     RRT* Initial  Path 
-  // -------------------------------
   ROS_INFO("Started computing path with RRT*");
 
+  // if initial path was found
   if (planner_->initialPath(path)) {
+    // convert to ros plan and publish to the topic ~/initial_plan
     computeInitialPlan(plan, path);
-    // double time_NN=planner_->time_nearest_neighbour_;
-    // ROS_INFO("---> Total time taken by getNearestNodeId: %f seconds", time_NN);
-    // -------------------------------
-    // Test Agent
-    // -------------------------------
-    // randomInitialPath test:
-    // PathAgent test_agent(path, sampling_radius_, -1, costmap_, b_);
-    // Initialization procedure
-    // if (path.size()>2){
-    //   rand_path=test_agent.randomInitialPath(path);
-    //   computeFinalPlan(plan, rand_path);
-    //   ROS_INFO("random initial path is published.");
-    // }
-    // else {
-    //   ROS_INFO("Path contains only two points.");
-    // }
-
-    // -------------------------------
-    //     WOA  Path  Optimization
-    // -------------------------------
-  
-    ROS_INFO("Proceeding to path optimization with WOA for %d iterations", N_);
-    if (path.size()>2){
-      // multiple tests version
-      // for (int i=Ng_; i<11*Ng_; i+=10){
-      //   woaOptimizePath(path, N_, i, b_);
-      //   computeFinalPlan(plan, path);
-      //   // ROS_INFO("WOA Executed successfully. New path is published.");
-      //   ROS_INFO("WOA Executed successfully for %d agents.", i);
-      // }
-      // single test version
-      woaOptimizePath(path, N_, Ng_, b_);
-      computeFinalPlan(plan, path);
-    }
-    else {
-      ROS_INFO("Path contains only two points. No WOA optimization.");
-    }
+    // refines path until reaching the minimum number of nodes
+    planner_->refinePath(path);
+    // convert to ros plan and publish to the topic ~/global_plane
+    computeFinalPlan(plan, path);
     return true;
   }
-  
+  // If the max number of nodes was exceeded and an initial path was not found
   else {
     ROS_WARN("The planner failed to find a path, choose other goal position");
     return false;
@@ -582,3 +538,4 @@ void RRTStarPlanner::agentToPath(arma::vec agent, std::list<std::pair<float, flo
 
 
 }  // namespace rrt_star_global_planner
+

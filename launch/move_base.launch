@@ -26,8 +26,7 @@
     <rosparam file="$(find rrt_star_global_planner)/config/teb_local_planner.yaml" command="load"/>
     <!-- <rosparam file="$(find rrt_star_global_planner)/config/dwa_planner.yaml" command="load"/> -->
     <rosparam file="$(find rrt_star_global_planner)/config/planner.yaml" command="load"/>
-    <!-- <rosparam file="$(find rrt_star_global_planner)/config/base_local_planner.yaml" command="load"/> -->
-    <!-- <rosparam file="$(find rrt_star_global_planner)/config/base_local_planner.yaml" command="load"/> -->
+    <rosparam file="$(find rrt_star_global_planner)/config/base_local_planner.yaml" command="load"/>
 
   </node>
 
