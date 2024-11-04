@@ -27,42 +27,42 @@
 #include "rrt_star_global_planner/random_int_generator.hpp"
 
 #include <dynamic_reconfigure/server.h>
-#include <rrt_star_global_planner/RRTStarPlannerConfig.h>
+#include <rrt_star_global_planner/GlWoaRrtstarPlannerConfig.h>
 
 namespace rrt_star_global_planner {
 
 /**
- * @class RRTStarPlanner
+ * @class GlWoaRrtstarPlanner
  * @brief Provides a ROS rrt* global planner plugin
  */
-class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
+class GlWoaRrtstarPlanner : public nav_core::BaseGlobalPlanner {
  public:
-  RRTStarPlanner();
+  GlWoaRrtstarPlanner();
 
   /**
-   * @brief  Constructor for the RRTStarPlanner object
+   * @brief  Constructor for the GlWoaRrtstarPlanner object
    * @param  name The name of this planner
    * @param  costmap A pointer to the ROS wrapper of the costmap to use
    */
-  RRTStarPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
+  GlWoaRrtstarPlanner(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
   /**
-   * @brief  Constructor for the RRTStarPlanner object
+   * @brief  Constructor for the GlWoaRrtstarPlanner object
    * @param  name The name of this planner
    * @param  costmap A pointer to the costmap to use
    * @param  global_frame The global frame of the costmap
    */
-  RRTStarPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string global_frame);
+  GlWoaRrtstarPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string global_frame);
 
   /**
-   * @brief  Initialization function for the RRTStarPlanner object
+   * @brief  Initialization function for the GlWoaRrtstarPlanner object
    * @param  name The name of this planner
    * @param  costmap A pointer to the ROS wrapper of the costmap to use for planning
    */
   void initialize(std::string name, costmap_2d::Costmap2DROS* costmap_ros);
 
   /**
-   * @brief  Initialization function for the RRTStarPlanner object
+   * @brief  Initialization function for the GlWoaRrtstarPlanner object
    * @param  name The name of this planner
    * @param  costmap A pointer to the costmap to use for planning
    * @param  global_frame The global frame of the costmap
@@ -88,7 +88,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
 
   void woaOptimizePath(std::list<std::pair<float, float>> &path, int N, int Ng, float spiral_shape);
 
-  void reconfigureCallback(RRTStarPlannerConfig& config, uint32_t level);
+  void reconfigureCallback(GlWoaRrtstarPlannerConfig& config, uint32_t level);
 
   /**
    * @brief Modifies the path given the agent
@@ -126,7 +126,7 @@ class RRTStarPlanner : public nav_core::BaseGlobalPlanner {
   float goal_z{0.0};
   float goal_w{1.0};
   // rqt reconfigure
-  typedef dynamic_reconfigure::Server<rrt_star_global_planner::RRTStarPlannerConfig> drs;
+  typedef dynamic_reconfigure::Server<rrt_star_global_planner::GlWoaRrtstarPlannerConfig> drs;
   // dynamic reconfigure server ptr
   boost::shared_ptr<drs> dr_server_;};
 }  // namespace rrt_star_global_planner

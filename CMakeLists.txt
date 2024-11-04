@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
 )
 
-generate_dynamic_reconfigure_options(cfg/RRTStarPlanner.cfg)
+generate_dynamic_reconfigure_options(cfg/GlWoaRrtstarPlanner.cfg)
 
 catkin_package(
   INCLUDE_DIRS include

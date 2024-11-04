@@ -407,8 +407,8 @@ void RRTStar::computeFinalPath(std::list<std::pair<float, float>> &path) {
   path_cost+=euclideanDistance2D(point.first, point.second, prev_point.first, prev_point.second);  
   ROS_INFO("Path cost: %f", path_cost);
 
-  // ROS_INFO("Path cost (computeFinalPath): %f", path_cost);
-  // ROS_INFO("Path cost (goal_node): %f", goal_node_.cost);
+  ROS_INFO("Path cost (computeFinalPath): %f", path_cost);
+  ROS_INFO("Path cost (goal_node): %f", goal_node_.cost);
 
 }
 

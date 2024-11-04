@@ -2,7 +2,7 @@
 <launch>
 
   <!-- Global Planner -->
-  <arg name="base_global_planner" default="rrt_star_global_planner/RRTStarPlanner"/>
+  <arg name="base_global_planner" default="rrt_star_global_planner/GlWoaRrtstarPlanner"/>
   <!-- <arg name="base_global_planner" default="navfn/NavfnROS"/> -->
   
   <!-- Local Planner -->
